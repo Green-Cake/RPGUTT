@@ -6,7 +6,6 @@ import crpth.rpgutt.entity.EntityWait
 import crpth.rpgutt.entity.IEntity
 import crpth.util.logging.Logger
 import crpth.util.vec.Vec4b
-import javafx.scene.paint.Color
 import kotlin.math.roundToInt
 
 val BLACK = Vec4b.BLACK
@@ -42,13 +41,6 @@ fun color(r: Float, g: Float, b: Float, a: Float=1f) = Vec4b((255*r).toInt(), (2
 fun grayscale(value: Int, a: Int=255) = color(value, value, value, a)
 
 fun grayscale(value: Float, a: Float=1f) = color(value, value, value, a)
-
-fun color(name: String): Vec4b {
-
-    val c = Color.web(name)
-    return color(c.red.toFloat(), c.green.toFloat(), c.blue.toFloat(), c.opacity.toFloat())
-
-}
 
 /*
 atom("Hello!" color(0, 0, 0))

@@ -21,7 +21,7 @@ value class Vec2s(val data: UInt) : IVec2n<Short> {
 
     constructor(x: Int, y: Int) : this(x.toShort(), y.toShort())
 
-    override fun setVertex() {
+    override fun setAsVertex() {
         GL11.glVertex2s(x, y)
     }
 

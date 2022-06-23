@@ -210,7 +210,7 @@ object SceneMain : IScene {
         return Vec2d(
             pos.x.toDouble(),
             pos.y.toDouble()
-        ) *scale - Vec2d.ONE
+        ) * scale - Vec2d.ONE
 
     }
 

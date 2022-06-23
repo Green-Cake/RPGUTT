@@ -11,6 +11,7 @@ import crpth.util.render.Renderer
 import crpth.util.sound.SoundManager
 import crpth.util.vec.Vec2f
 import crpth.util.vec.Vec2i
+import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.opengl.GL
@@ -24,7 +25,8 @@ object RpgUtt {
 
     var windowSize = Vec2i(1280, 960)
 
-    private var window = Window(NULL)
+    var window = Window(NULL)
+        private set
 
     val renderer = Renderer()
 
@@ -57,6 +59,8 @@ object RpgUtt {
 
             logger.config("Main Loop started")
             loop()
+        } catch (e: Throwable) {
+            e.printStackTrace()
         } finally {
             finish()
         }
@@ -81,6 +85,8 @@ object RpgUtt {
 
     private fun init() {
 
+        logger.info("LWJGL Version: ${Version.getVersion()}")
+
         soundManager.init()
 
         GLFWErrorCallback.createPrint(System.err).set()
@@ -96,20 +102,19 @@ object RpgUtt {
         glfwWindowHint(GLFW_VISIBLE, TRUE)
         glfwWindowHint(GLFW_RESIZABLE, TRUE)
 
-
         window = Window.create(windowSize.x, windowSize.y, "RPG UTT")
         if(window.isNull()) {
             throw RuntimeException("Failed to create GLFW window...")
         }
 
         glfwSetKeyCallback(window.id, ::onKeyEvent)
+
         glfwSetCursorPosCallback(window.id) { w, x, y ->
-            cursorPos = Vec2f(x.toFloat()/windowSize.x, 1.0f - y.toFloat()/windowSize.y)*2f - Vec2f.ONE
+            cursorPos = Vec2f(x.toFloat()/windowSize.x, 1.0f - y.toFloat()/windowSize.y)*2.0f - Vec2f.ONE
         }
+
         glfwSetMouseButtonCallback(window.id) { w, button, action, mods, ->
-
             scene.onClicked(MouseButton.from(button), MouseAction.from(action))
-
         }
 
         window.makeContextCurrent()
@@ -157,7 +162,7 @@ object RpgUtt {
             render()
 
             window.swapBuffers()
-            glfwPollEvents()
+            glfwPollEvents() // freeze
 
         }
 

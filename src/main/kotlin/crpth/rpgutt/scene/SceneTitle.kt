@@ -74,6 +74,8 @@ class SceneTitle : SceneParent() {
 
         override fun update() {
 
+            println(System.nanoTime())
+
             if(!fadeToPlay.isNaN()) {
 
                 fadeToPlay -= 1
@@ -87,6 +89,10 @@ class SceneTitle : SceneParent() {
 
                 return
 
+            }
+
+            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+                GLFW.glfwSetWindowShouldClose(RpgUtt.window.id, true)
             }
 
             if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_UP)) {
@@ -133,7 +139,11 @@ class SceneTitle : SceneParent() {
 
         }
 
+        var tick = -1
+
         override fun render(renderer: Renderer) {
+
+            ++tick
 
             select = select.mod(5)
 

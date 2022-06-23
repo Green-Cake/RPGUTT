@@ -1,6 +1,7 @@
 package crpth.util
 
 import crpth.rpgutt.NULL
+import crpth.util.vec.Vec2i
 import org.lwjgl.glfw.Callbacks
 import org.lwjgl.glfw.GLFW
 
@@ -27,11 +28,11 @@ value class Window(val id: Long) {
 
     fun swapBuffers() = GLFW.glfwSwapBuffers(id)
 
-    fun getWindowSize(): Pair<Int, Int> {
+    fun getWindowSize(): Vec2i {
         val width = IntArray(1)
         val height = IntArray(1)
         GLFW.glfwGetWindowSize(id, width, height)
-        return width.getOrElse(0) { -1 } to height.getOrElse(0) { -1 }
+        return Vec2i(width.getOrElse(0) { -1 }, height.getOrElse(0) { -1 })
     }
 
 }

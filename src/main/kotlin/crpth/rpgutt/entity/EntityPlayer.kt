@@ -6,7 +6,6 @@ import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import kotlin.script.experimental.api.CompiledScript
 
 class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPerson("arrow", Vec2i(16, 16), pos, size, direction, "null") {
 
@@ -25,7 +24,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     }
 
-    override val script: CompiledScript?
+    override val script
         get() = null
 
     private fun getTalkableEntity(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {

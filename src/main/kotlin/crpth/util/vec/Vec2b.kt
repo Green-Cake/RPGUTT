@@ -23,7 +23,7 @@ value class Vec2b(val data: UShort) : IVec2n<Byte> {
 
     constructor(x: Int, y: Int) : this(x.toByte(), y.toByte())
 
-    override fun setVertex() {
+    override fun setAsVertex() {
         GL11.glVertex2i(x.resizeToInt(), y.resizeToInt())
     }
 

@@ -20,7 +20,7 @@ value class Vec2i(val data: ULong) : IVec2n<Int> {
 
     constructor(x: Int, y: Int) : this((x.resizeToULong() shl 32) + y.resizeToULong())
 
-    override fun setVertex() {
+    override fun setAsVertex() {
         GL11.glVertex2i(x, y)
     }
 

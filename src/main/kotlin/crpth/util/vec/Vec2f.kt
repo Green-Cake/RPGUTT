@@ -18,7 +18,7 @@ value class Vec2f(val data: ULong) : IVec2n<Float> {
 
     override val y get() = Float.fromBits(data.toInt())
 
-    override fun setVertex() {
+    override fun setAsVertex() {
         GL11.glVertex2f(x, y)
     }
 

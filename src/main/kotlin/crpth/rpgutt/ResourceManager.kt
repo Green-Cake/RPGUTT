@@ -40,7 +40,7 @@ object ResourceManager {
 
     }
 
-    fun loadImagesSeparatedAndCountX(stream: InputStream, sizeForEach: Vec2i): Pair<Array<ByteBuffer>, Int> {
+    fun loadSeparatedImagesWithWidth(stream: InputStream, sizeForEach: Vec2i): Pair<Array<ByteBuffer>, Int> {
 
         val bi = ImageIO.read(stream)
         val size = Vec2i(bi.width, bi.height)
