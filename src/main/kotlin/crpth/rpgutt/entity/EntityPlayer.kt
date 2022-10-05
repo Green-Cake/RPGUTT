@@ -8,7 +8,7 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 import kotlin.script.experimental.api.CompiledScript
 
-class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPerson("arrow", Vec2i(16, 16), pos, size, direction, "null") {
+class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction4) : EntityPerson("arrow", Vec2i(16, 16), pos, size, direction, "null") {
 
     companion object {
 
@@ -18,7 +18,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
             val size = Vec2f.readFrom(stream)
 
-            val direction = Direction.values()[stream.readByte().resizeToInt()]
+            val direction = Direction4.values()[stream.readByte().resizeToInt()]
 
             return EntityPlayer(pos, size, direction)
         }
@@ -30,7 +30,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     private fun getTalkableEntity(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
-                if(direction == Direction.NORTH || direction == Direction.EAST)
+                if(direction == Direction4.NORTH || direction == Direction4.EAST)
                     it.intersects(pos.toVec2f()+direction.component.toVec2f(), size - direction.component.toVec2f()/4f)
                 else
                     it.intersects(pos.toVec2f() + direction.component.toVec2f()/4f, size + direction.component.toVec2f()/4f)
@@ -55,13 +55,13 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
         val cap = 7
         val strictCap = 1
 
-        val flagW = RpgUtt.isKeyDown(GLFW.GLFW_KEY_W)
-        val flagA = RpgUtt.isKeyDown(GLFW.GLFW_KEY_A)
-        val flagS = RpgUtt.isKeyDown(GLFW.GLFW_KEY_S)
-        val flagD = RpgUtt.isKeyDown(GLFW.GLFW_KEY_D)
+        val flagW = Direction4.NORTH in RpgUtt.controller.directions
+        val flagA = Direction4.WEST in RpgUtt.controller.directions
+        val flagS = Direction4.SOUTH in RpgUtt.controller.directions
+        val flagD = Direction4.EAST in RpgUtt.controller.directions
 
         if (flagW || flagS) {
-            direction = if(flagW) Direction.NORTH else Direction.SOUTH
+            direction = if(flagW) Direction4.NORTH else Direction4.SOUTH
             val dist = if(flagW) pos.plusSub(0, amount) else pos.plusSub(0, -amount)
 
             if(SceneMain.canPlayerGoto(direction))
@@ -80,7 +80,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
         }
 
         if (flagA || flagD) {
-            direction = if(flagD) Direction.EAST else Direction.WEST
+            direction = if(flagD) Direction4.EAST else Direction4.WEST
             val dist = if(flagD) pos.plusSub(amount, 0) else pos.plusSub(-amount, 0)
 
             if(SceneMain.canPlayerGoto(direction))

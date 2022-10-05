@@ -14,7 +14,7 @@ import java.io.DataOutputStream
 import kotlin.script.experimental.api.CompiledScript
 import kotlin.script.experimental.host.StringScriptSource
 
-open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
+open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction4, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
 
     companion object {
 
@@ -27,7 +27,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
             val size = Vec2f.readFrom(stream)
 
-            val direction = Direction.values()[stream.readByte().resizeToInt()]
+            val direction = Direction4.values()[stream.readByte().resizeToInt()]
 
             val scriptSrc = stream.readString()
 
@@ -51,7 +51,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
         motion = Vec2i.ZERO
     }
 
-    fun move(d: Direction=direction, amount: Int=1) {
+    fun move(d: Direction4=direction, amount: Int=1) {
         motion += d.component*amount
     }
 
@@ -61,21 +61,21 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
         if(motion.x > 0) {
             motion -= Vec2i(speed, 0)
-            if(sceneMain.canEntityGoto(pos, Direction.EAST))
+            if(sceneMain.canEntityGoto(pos, Direction4.EAST))
                 pos = pos.plusSub(speed, 0)
         } else if(motion.x < 0) {
             motion += Vec2i(speed, 0)
-            if(sceneMain.canEntityGoto(pos, Direction.WEST))
+            if(sceneMain.canEntityGoto(pos, Direction4.WEST))
                 pos = pos.minusSub(speed, 0)
         }
 
         if(motion.y > 0) {
             motion -= Vec2i(0, speed)
-            if(sceneMain.canEntityGoto(pos, Direction.NORTH))
+            if(sceneMain.canEntityGoto(pos, Direction4.NORTH))
                 pos = pos.plusSub(0, speed)
         } else if(motion.y < 0) {
             motion += Vec2i(0, speed)
-            if(sceneMain.canEntityGoto(pos, Direction.SOUTH))
+            if(sceneMain.canEntityGoto(pos, Direction4.SOUTH))
                 pos = pos.minusSub(0, speed)
         }
 

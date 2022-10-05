@@ -6,6 +6,8 @@ import crpth.rpgutt.map.TileMap
 import crpth.rpgutt.map.TileMapLoader
 import crpth.rpgutt.scene.SceneMain.Parameter.*
 import crpth.rpgutt.script.lib.Serif
+import crpth.util.gui.Gui
+import crpth.util.gui.GuiBackground
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -53,7 +55,9 @@ object SceneMain : IScene {
 
     val player: EntityPlayer get() = entities.entities.filterIsInstance<EntityPlayer>().first()
 
-    val playerCanMove get() = !isTalking
+    val playerCanMove get() = !isTalking && !guiMenu.isEnabled
+
+    val guiMenu = Gui()
 
     fun setParam(p: Parameter, value: UInt) {
         parameters[p] = value
@@ -90,6 +94,22 @@ object SceneMain : IScene {
 
     override fun update() {
 
+        //TODO
+        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_Q)) {
+
+            if(guiMenu.nodes.isEmpty()) {
+
+                guiMenu.nodes.add(GuiBackground(0, Vec2f(-0.9f, -0.9f), Vec2f(0.6f, 0.9f), Vec4b(0, 128, 0, 220),
+                    Vec4b(128, 128, 128, 255)))
+
+            }
+
+            guiMenu.enable()
+
+        }
+
+        guiMenu.update()
+
         if(!isLoadingFinished)
             return
 
@@ -124,6 +144,8 @@ object SceneMain : IScene {
             return
 
         }
+
+        //
 
         if(statusPre == IEntity.Feedback.CONTINUE) {
             entitiesPre.render(this, renderer)
@@ -177,6 +199,8 @@ object SceneMain : IScene {
 
         currentSerifEntity?.render(this, renderer)
 
+        guiMenu.render(renderer)
+
     }
 
     override fun reset() {
@@ -228,16 +252,16 @@ object SceneMain : IScene {
 
     }
 
-    fun canEntityGoto(position: GamePos, d: Direction): Boolean {
+    fun canEntityGoto(position: GamePos, d: Direction4): Boolean {
 
         when(d) {
-            Direction.NORTH, Direction.SOUTH -> {
+            Direction4.NORTH, Direction4.SOUTH -> {
 
                 if(position.subpixel.y != 0u.toUByte())
                     return true
 
             }
-            Direction.EAST, Direction.WEST -> {
+            Direction4.EAST, Direction4.WEST -> {
 
                 if(position.subpixel.x != 0u.toUByte())
                     return true
@@ -246,7 +270,7 @@ object SceneMain : IScene {
         }
 
         val p0 = when(d) {
-            Direction.NORTH, Direction.EAST -> position.pixel.toVec2i() + d.component
+            Direction4.NORTH, Direction4.EAST -> position.pixel.toVec2i() + d.component
             else -> position.pixel.toVec2i() + d.component
         }
 
@@ -254,8 +278,8 @@ object SceneMain : IScene {
             return false
 
         val p1 = p0 + when {
-            (d == Direction.NORTH || d == Direction.SOUTH) && position.subpixel.x != 0u.toUByte() -> Direction.EAST.component
-            (d == Direction.WEST || d == Direction.EAST) && position.subpixel.y != 0u.toUByte() -> Direction.NORTH.component
+            (d == Direction4.NORTH || d == Direction4.SOUTH) && position.subpixel.x != 0u.toUByte() -> Direction4.EAST.component
+            (d == Direction4.WEST || d == Direction4.EAST) && position.subpixel.y != 0u.toUByte() -> Direction4.NORTH.component
             else -> return true
         }
 
@@ -266,7 +290,7 @@ object SceneMain : IScene {
 
     }
 
-    fun canPlayerGoto(d: Direction) = canEntityGoto(player.pos, d)
+    fun canPlayerGoto(d: Direction4) = canEntityGoto(player.pos, d)
 
     fun talk(serif: Serif): Boolean {
 

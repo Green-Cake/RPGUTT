@@ -28,7 +28,7 @@ fun main(args: Array<String>) {
 
 fun order(vararg entities: IEntity) = EntityOrderedList(entities)
 
-fun parallel(vararg entities: IEntity) = EntityParallel(entities)
+fun parallel(vararg entities: IEntity) = EntityParallel(entities.toMutableList())
 
 fun waits(duration: Float) = EntityWait(duration)
 
@@ -56,8 +56,8 @@ fun compile() {
     )
 
     val post = parallel(
-        EntityPlayer(GamePos(0u, 0u), Vec2f(1f, 1f), Direction.NORTH),
-        EntityPerson("arrow", Vec2i(16, 16), GamePos(7u, 7u), Vec2f(1f, 1f), Direction.SOUTH, "entity/test")
+        EntityPlayer(GamePos(0u, 0u), Vec2f(1f, 1f), Direction4.NORTH),
+        EntityPerson("arrow", Vec2i(16, 16), GamePos(7u, 7u), Vec2f(1f, 1f), Direction4.SOUTH, "entity/test")
     )
 
     val map = TileMap("temporary", Vec2s(100, 100), UShortArray(100*100) { if(Random.nextInt(16) == 0) 2u.toUShort() else 3u.toUShort() }, listOf(pre.createFactory(), post.createFactory()))

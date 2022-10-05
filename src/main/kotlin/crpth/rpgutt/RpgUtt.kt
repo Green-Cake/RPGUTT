@@ -1,5 +1,8 @@
 package crpth.rpgutt
 
+import crpth.rpgutt.controller.Controller
+import crpth.rpgutt.controller.ControllerJoystick
+import crpth.rpgutt.controller.ControllerManager
 import crpth.rpgutt.scene.IScene
 import crpth.rpgutt.scene.SceneTitle
 import crpth.rpgutt.scene.SceneVoid
@@ -13,6 +16,7 @@ import crpth.util.vec.Vec2f
 import crpth.util.vec.Vec2i
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWGamepadState
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 
@@ -33,6 +37,8 @@ object RpgUtt {
     var scene: IScene = SceneVoid
 
     var cursorPos = Vec2f.ZERO
+
+    val controller = ControllerManager().apply { enable() }
 
     fun changeScene(another: IScene) {
 
@@ -149,8 +155,6 @@ object RpgUtt {
 
         glCullFace(GL_BACK)
 
-        renderer.fontManager.init()
-
         while(!window.shouldClose()) {
 
             update()
@@ -169,6 +173,8 @@ object RpgUtt {
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
+
+        controller.update()
 
         scene.update()
 
@@ -205,5 +211,9 @@ object RpgUtt {
     fun isKeyReleased(key: Int): Boolean {
         return key !in keyMap
     }
+
+    val gamepadState = GLFWGamepadState.malloc()
+
+    fun updateGamepadState() = glfwGetGamepadState(GLFW_JOYSTICK_1, gamepadState)
 
 }

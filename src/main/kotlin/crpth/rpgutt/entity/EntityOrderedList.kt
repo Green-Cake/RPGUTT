@@ -8,7 +8,6 @@ import java.io.DataInputStream
 import java.io.DataOutputStream
 
 class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering() {
-
     companion object {
 
         fun decode(stream: DataInputStream): EntityOrderedList {

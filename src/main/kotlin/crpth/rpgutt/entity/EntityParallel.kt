@@ -7,7 +7,7 @@ import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
+class EntityParallel(val entities: MutableList<out IEntity>) : EntityWithRendering() {
 
     companion object {
 
@@ -15,7 +15,7 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
             val number = stream.readShort().resizeToInt()
 
-            val entities = Array(number) {
+            val entities = MutableList(number) {
 
                 val c_id = stream.readShort().toUShort()
                 val size = stream.readShort().resizeToInt()
@@ -31,35 +31,33 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
     }
 
-    val status = Array(entities.size) { IEntity.Feedback.CONTINUE }
-
     override fun update(sceneMain: SceneMain): IEntity.Feedback {
 
         if(entities.isEmpty())
             return IEntity.Feedback.FINISH
 
+        val finishedEntities = mutableSetOf<IEntity>()
+
         entities.forEachIndexed { index, entity ->
 
-            if(status[index] == IEntity.Feedback.FINISH)
-                return@forEachIndexed
-
-            status[index] = entity.update(sceneMain)
+            if(entity.update(sceneMain) == IEntity.Feedback.FINISH) {
+                finishedEntities += entity
+            }
 
         }
 
-        return if(IEntity.Feedback.CONTINUE !in status)
-            IEntity.Feedback.FINISH
-        else
-            IEntity.Feedback.CONTINUE
+        entities.removeAll(finishedEntities)
+
+        if(entities.isEmpty())
+            return IEntity.Feedback.FINISH
+
+        return IEntity.Feedback.CONTINUE
 
     }
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
 
         entities.forEachIndexed { index, entity ->
-
-            if(status[index] == IEntity.Feedback.FINISH)
-                return@forEachIndexed
 
             (entity as? EntityWithRendering)?.render(sceneMain, renderer)
 
