@@ -38,6 +38,8 @@ fun color(r: Int, g: Int, b: Int, a: Int=255) = Vec4b(r, g, b, a)
 
 fun color(r: Float, g: Float, b: Float, a: Float=1f) = Vec4b((255*r).toInt(), (255*g).toInt(), (255*b).toInt(), (255*a).toInt())
 
+fun color(r: Double, g: Double, b: Double, a: Double=1.0) = color(r.toFloat(), g.toFloat(), b.toFloat(), a.toFloat())
+
 fun grayscale(value: Int, a: Int=255) = color(value, value, value, a)
 
 fun grayscale(value: Float, a: Float=1f) = color(value, value, value, a)

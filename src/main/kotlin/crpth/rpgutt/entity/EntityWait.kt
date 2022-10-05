@@ -4,7 +4,6 @@ import crpth.rpgutt.scene.SceneMain
 import crpth.util.vec.Vec4b
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.nio.ByteBuffer
 
 class EntityWait(val duration: Float) : EntityScript() {
 

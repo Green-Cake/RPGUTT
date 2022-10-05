@@ -2,11 +2,13 @@ package crpth.rpgutt.entity
 
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.render.Renderer
-import crpth.util.vec.*
+import crpth.util.vec.Vec2f
+import crpth.util.vec.Vec4b
+import crpth.util.vec.readFrom
+import crpth.util.vec.resizeToInt
 import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.nio.ByteBuffer
 
 class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val color: Vec4b, val duration: Float, val fadeIn: Float, val fadeOut: Float) : EntityWithRendering() {
 

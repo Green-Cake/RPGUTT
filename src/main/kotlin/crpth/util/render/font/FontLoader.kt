@@ -13,7 +13,7 @@ object FontLoader {
 
     fun load(chars: CharArray, font: Font): TextureCharacters {
 
-        val ids = chars.map {
+        val textureMap = chars.associateWith {
 
             val bound = font.getStringBounds(it.toString(), ctx)
 
@@ -27,11 +27,11 @@ object FontLoader {
 
             graphics.drawString(it.toString(), 0, img.height - (graphics.fontMetrics.leading + graphics.fontMetrics.descent)/2)
 
-            Texture.load(img).id
+            Texture.load(img)
 
         }
 
-        return TextureCharacters(font, chars, ids.toIntArray())
+        return TextureCharacters(font, textureMap.toMutableMap())
 
     }
 

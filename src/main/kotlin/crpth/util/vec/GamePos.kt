@@ -1,7 +1,6 @@
 package crpth.util.vec
 
 import java.io.DataInputStream
-import java.io.InputStream
 
 /**
  * @param data x(16) y(16) UNUSED(8) sx(4) sy(4) z(16)

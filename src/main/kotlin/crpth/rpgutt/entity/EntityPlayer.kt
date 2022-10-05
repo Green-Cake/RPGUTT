@@ -24,8 +24,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     }
 
-    override val script
-        get() = null
+    override val script get() = throw Exception()
 
     private fun getTalkableEntity(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
@@ -45,7 +44,10 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
             val target = getTalkableEntity(SceneMain) as IEntityTalkable?
 
             if(target != null)
-                SceneMain.talk(target.getSerif(SceneMain)!!)
+                SceneMain.talk(target.getSerif(SceneMain) ?: run {
+                    RpgUtt.logger.warn("No serif object returned!")
+                    return IEntity.Feedback.CONTINUE
+                })
 
             return IEntity.Feedback.CONTINUE
         }

@@ -74,7 +74,7 @@ class SceneTitle : SceneParent() {
 
         override fun update() {
 
-            println(System.nanoTime())
+            RpgUtt.renderer.fontManager.init()
 
             if(!fadeToPlay.isNaN()) {
 

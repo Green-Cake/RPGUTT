@@ -11,7 +11,7 @@ class Renderer {
     var doDrawOverline = false
     var doDrawUnderline = false
 
-    val fontManager = FontManager(16)
+    val fontManager = FontManager(256)
 
     val fontEn = fontManager.fontMonospaced
     val fontJa = fontManager.fontYumincho
@@ -133,16 +133,14 @@ class Renderer {
      */
     fun renderChar(char: Char, tex: TextureCharacters, position: Vec2d, height: Double): Double {
 
-        val i = tex.chars.indexOf(char)
-
-        return renderTextureAA(Texture(tex.ids[i]), position, height)
+        return renderTextureAA(tex.textureMap[char]!!, position, height)
 
     }
 
     fun getTcOrDynamicallyGen(char: Char, dfont: Font=fontJa) = when(char) {
 
-        in fontManager.textures[fontEn]!!.chars ->fontManager.textures[fontEn]!!
-        in fontManager.textures[fontJa]!!.chars -> fontManager.textures[fontJa]!!
+        in fontManager.textures[fontEn]!!.textureMap ->fontManager.textures[fontEn]!!
+        in fontManager.textures[fontJa]!!.textureMap -> fontManager.textures[fontJa]!!
         else -> {
             fontManager.textures[dfont]!!.dynamicLoad(char)
             fontManager.textures[dfont]!!

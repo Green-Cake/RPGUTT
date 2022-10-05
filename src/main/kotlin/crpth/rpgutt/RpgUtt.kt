@@ -23,7 +23,7 @@ object RpgUtt {
         outputLevel = Logger.Level.FINER
     }
 
-    var windowSize = Vec2i(1280, 960)
+    val windowSize = Vec2i(1280, 960)
 
     var window = Window(NULL)
         private set
@@ -51,12 +51,13 @@ object RpgUtt {
 
     fun run() {
 
+        logger.info("Thread: ${Thread.currentThread().name}")
+
         try {
             logger.info("Program [RPG-UTT] started")
 
             logger.config("Initialization started")
             init()
-
             logger.config("Main Loop started")
             loop()
         } catch (e: Throwable) {
@@ -154,16 +155,13 @@ object RpgUtt {
 
         glCullFace(GL_BACK)
 
-        renderer.fontManager.init()
-
-        while(!window.shouldClose()) {
+        while(!window.shouldClose()) { //loop start
 
             update()
             render()
 
             window.swapBuffers()
-            glfwPollEvents() // freeze
-
+            glfwPollEvents()
         }
 
     } finally {

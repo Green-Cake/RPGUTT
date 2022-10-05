@@ -11,7 +11,6 @@ import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.vec.*
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import java.util.*
 import kotlin.concurrent.thread
