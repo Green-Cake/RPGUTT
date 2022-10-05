@@ -1,31 +1,60 @@
 package crpth.util.render.font
 
-import crpth.util.render.TileSet
-import crpth.util.vec.Vec2i
+import crpth.rpgutt.RpgUtt
 import java.awt.Font
 
-object FontManager {
+class FontManager(fontsizeToLoad: Int) {
 
-    enum class Chars(val id: Int) {
-        QUESTION(0)
+    var isInitialized = false
+        private set
+
+    val textures = mutableMapOf<Font, TextureCharacters>()
+
+    val fontMonospaced = Font(Font.MONOSPACED, Font.PLAIN, fontsizeToLoad)
+
+    val fontYumincho = Font("游明朝体", Font.PLAIN, fontsizeToLoad)
+
+    private fun s(c: Char) = c..c
+
+    fun init() {
+
+        fontMonospaced.size
+
+        if(isInitialized)
+            return
+
+        isInitialized = true
+
+        textures[fontMonospaced] = TextureCharacters(fontMonospaced)
+
+        textures[fontYumincho] = TextureCharacters(fontYumincho)
+
+        load(fontMonospaced, '!'..'~', '¡'..'¿', s(' '))
+
+        load(fontYumincho, '!'..'~', '¡'..'¿', s(' '), 'ぁ'..'ゖ', 'ァ'..'ヿ')
+
+        RpgUtt.logger.info("loading font end")
+
     }
 
-    val charMap = mutableMapOf<Char, Int>()
+    fun load(font: Font, chars: CharArray) {
+        textures[font] = generateTextureCharacters(font, chars)
+    }
 
-    init {
+    fun load(font: Font, vararg chars: CharRange) {
+        textures[font] = generateTextureCharacters(font, chars)
+    }
 
-        var i = 0
+    fun generateTextureCharacters(font: Font, characters: CharArray): TextureCharacters {
 
-        charMap['?'] = i++
-
-        for(c in 'A'..'Z') {
-            charMap[c] = i++
-        }
+        return FontLoader.load(characters, font)
 
     }
 
-    val texture by TileSet.createLazyInit("assets/rpgutt/textures/char/set0.png", Vec2i(16, 16))
+    fun generateTextureCharacters(font: Font, chars: Array<out CharRange>): TextureCharacters {
 
-    operator fun get(char: Char) = texture[charMap[char] ?: Chars.QUESTION.id]
+        return FontLoader.load(chars, font)
+
+    }
 
 }

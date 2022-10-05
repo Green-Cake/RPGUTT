@@ -12,7 +12,7 @@ data class Vec2d(override val x: Double, override val y: Double) : IVec2n<Double
 
     }
 
-    override fun setVertex() {
+    override fun setAsVertex() {
         GL11.glVertex2d(x, y)
     }
 

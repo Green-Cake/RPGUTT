@@ -1,8 +1,5 @@
 package crpth.rpgutt
 
-import crpth.rpgutt.controller.Controller
-import crpth.rpgutt.controller.ControllerJoystick
-import crpth.rpgutt.controller.ControllerManager
 import crpth.rpgutt.scene.IScene
 import crpth.rpgutt.scene.SceneTitle
 import crpth.rpgutt.scene.SceneVoid
@@ -14,9 +11,9 @@ import crpth.util.render.Renderer
 import crpth.util.sound.SoundManager
 import crpth.util.vec.Vec2f
 import crpth.util.vec.Vec2i
+import org.lwjgl.Version
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWErrorCallback
-import org.lwjgl.glfw.GLFWGamepadState
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL11.*
 
@@ -26,9 +23,10 @@ object RpgUtt {
         outputLevel = Logger.Level.FINER
     }
 
-    var windowSize = Vec2i(1280, 960)
+    val windowSize = Vec2i(1280, 960)
 
-    private var window = Window(NULL)
+    var window = Window(NULL)
+        private set
 
     val renderer = Renderer()
 
@@ -37,8 +35,6 @@ object RpgUtt {
     var scene: IScene = SceneVoid
 
     var cursorPos = Vec2f.ZERO
-
-    val controller = ControllerManager().apply { enable() }
 
     fun changeScene(another: IScene) {
 
@@ -55,14 +51,17 @@ object RpgUtt {
 
     fun run() {
 
+        logger.info("Thread: ${Thread.currentThread().name}")
+
         try {
             logger.info("Program [RPG-UTT] started")
 
             logger.config("Initialization started")
             init()
-
             logger.config("Main Loop started")
             loop()
+        } catch (e: Throwable) {
+            e.printStackTrace()
         } finally {
             finish()
         }
@@ -87,6 +86,8 @@ object RpgUtt {
 
     private fun init() {
 
+        logger.info("LWJGL Version: ${Version.getVersion()}")
+
         soundManager.init()
 
         GLFWErrorCallback.createPrint(System.err).set()
@@ -102,20 +103,19 @@ object RpgUtt {
         glfwWindowHint(GLFW_VISIBLE, TRUE)
         glfwWindowHint(GLFW_RESIZABLE, TRUE)
 
-
         window = Window.create(windowSize.x, windowSize.y, "RPG UTT")
         if(window.isNull()) {
             throw RuntimeException("Failed to create GLFW window...")
         }
 
         glfwSetKeyCallback(window.id, ::onKeyEvent)
+
         glfwSetCursorPosCallback(window.id) { w, x, y ->
-            cursorPos = Vec2f(x.toFloat()/windowSize.x, 1.0f - y.toFloat()/windowSize.y)*2f - Vec2f.ONE
+            cursorPos = Vec2f(x.toFloat()/windowSize.x, 1.0f - y.toFloat()/windowSize.y)*2.0f - Vec2f.ONE
         }
+
         glfwSetMouseButtonCallback(window.id) { w, button, action, mods, ->
-
             scene.onClicked(MouseButton.from(button), MouseAction.from(action))
-
         }
 
         window.makeContextCurrent()
@@ -155,14 +155,13 @@ object RpgUtt {
 
         glCullFace(GL_BACK)
 
-        while(!window.shouldClose()) {
+        while(!window.shouldClose()) { //loop start
 
             update()
             render()
 
             window.swapBuffers()
             glfwPollEvents()
-
         }
 
     } finally {
@@ -173,8 +172,6 @@ object RpgUtt {
 
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
-
-        controller.update()
 
         scene.update()
 
@@ -211,9 +208,5 @@ object RpgUtt {
     fun isKeyReleased(key: Int): Boolean {
         return key !in keyMap
     }
-
-    val gamepadState = GLFWGamepadState.malloc()
-
-    fun updateGamepadState() = glfwGetGamepadState(GLFW_JOYSTICK_1, gamepadState)
 
 }

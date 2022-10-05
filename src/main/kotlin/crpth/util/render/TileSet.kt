@@ -13,18 +13,18 @@ class TileSet(val path: String, val sizePerTile: Vec2i) {
     }
 
     val ids: IntArray
-    val countX: Int
+    val width: Int
     val length: Int get() = ids.size
 
-    val countY get() = length / countX
+    val countY get() = length / width
 
     init {
 
         val idsMut = mutableListOf<Int>()
 
-        val (buffers, countX) = ResourceManager.loadImagesSeparatedAndCountX(ClassLoader.getSystemResourceAsStream(path)!!, sizePerTile)
+        val (buffers, width) = ResourceManager.loadSeparatedImagesWithWidth(ClassLoader.getSystemResourceAsStream(path)!!, sizePerTile)
 
-        this.countX = countX
+        this.width = width
 
         buffers.forEach { buf ->
 
@@ -62,7 +62,7 @@ class TileSet(val path: String, val sizePerTile: Vec2i) {
         return Texture(ids[index])
     }
 
-    fun getAsTextureAt(x: Int, y: Int) = getAsTextureAt(y * countX + x)
+    fun getAsTextureAt(x: Int, y: Int) = getAsTextureAt(y * width + x)
 
     fun bind(index: Int) {
         GL11.glBindTexture(GL11.GL_TEXTURE_2D, ids[index])

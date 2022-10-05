@@ -4,7 +4,10 @@ import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
 import crpth.rpgutt.map.TileMapGenerator
 import crpth.rpgutt.scene.SceneMain
-import crpth.util.vec.*
+import crpth.util.vec.GamePos
+import crpth.util.vec.Vec2f
+import crpth.util.vec.Vec2i
+import crpth.util.vec.Vec2s
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.zip.ZipEntry

@@ -9,7 +9,6 @@ import crpth.util.vec.Vec2f
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11.glColor4f
 import java.io.DataOutputStream
-import java.nio.ByteBuffer
 import kotlin.math.roundToInt
 
 class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : EntityWithRendering(), Unencodable {

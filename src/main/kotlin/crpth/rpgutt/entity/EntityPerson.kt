@@ -1,6 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.ResourceManager
+import crpth.rpgutt.RpgUtt
 import crpth.rpgutt.scene.SceneMain
 import crpth.rpgutt.script.ScriptEvaluator
 import crpth.rpgutt.script.ScriptImplicitReceiver
@@ -14,7 +15,7 @@ import java.io.DataOutputStream
 import kotlin.script.experimental.api.CompiledScript
 import kotlin.script.experimental.host.StringScriptSource
 
-open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction4, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
+open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
 
     companion object {
 
@@ -27,7 +28,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
             val size = Vec2f.readFrom(stream)
 
-            val direction = Direction4.values()[stream.readByte().resizeToInt()]
+            val direction = Direction.values()[stream.readByte().resizeToInt()]
 
             val scriptSrc = stream.readString()
 
@@ -36,22 +37,31 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     }
 
+    var motionCounter = 0
     var motion = Vec2i.ZERO
     var speed = 1
 
     val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$name.png", sizePerTile)
 
-    open val script: CompiledScript? = try {
-        ScriptEvaluator.compile(StringScriptSource(ResourceManager.loadScriptSrc(scriptSrcPath)))
-    } catch (t: Throwable) {
-        null
+    open val script: CompiledScript by lazy {
+        try {
+
+            if(scriptSrcPath == "null") {
+                RpgUtt.logger.warn("Script file not specified! (entity: $name)")
+                throw Exception()
+            } else {
+                ScriptEvaluator.compile(StringScriptSource(ResourceManager.loadScriptSrc(scriptSrcPath)))
+            }
+        } catch (t: Throwable) {
+            throw t
+        }
     }
 
     fun resetMotion() {
         motion = Vec2i.ZERO
     }
 
-    fun move(d: Direction4=direction, amount: Int=1) {
+    fun move(d: Direction=direction, amount: Int=1) {
         motion += d.component*amount
     }
 
@@ -59,30 +69,32 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun update(sceneMain: SceneMain): IEntity.Feedback {
 
-        if(motion.x > 0) {
-            motion -= Vec2i(speed, 0)
-            if(sceneMain.canEntityGoto(pos, Direction4.EAST))
-                pos = pos.plusSub(speed, 0)
-        } else if(motion.x < 0) {
-            motion += Vec2i(speed, 0)
-            if(sceneMain.canEntityGoto(pos, Direction4.WEST))
-                pos = pos.minusSub(speed, 0)
+        if(motionCounter == 0 && !sceneMain.isTalking) {
+
+            if(motion.x > 0) {
+                motion -= Vec2i(speed, 0)
+                if(sceneMain.canEntityGoto(pos, Direction.EAST))
+                    pos = pos.plusSub(speed, 0)
+            } else if(motion.x < 0) {
+                motion += Vec2i(speed, 0)
+                if(sceneMain.canEntityGoto(pos, Direction.WEST))
+                    pos = pos.minusSub(speed, 0)
+            }
+
+            if(motion.y > 0) {
+                motion -= Vec2i(0, speed)
+                if(sceneMain.canEntityGoto(pos, Direction.NORTH))
+                    pos = pos.plusSub(0, speed)
+            } else if(motion.y < 0) {
+                motion += Vec2i(0, speed)
+                if(sceneMain.canEntityGoto(pos, Direction.SOUTH))
+                    pos = pos.minusSub(0, speed)
+            }
+
         }
 
-        if(motion.y > 0) {
-            motion -= Vec2i(0, speed)
-            if(sceneMain.canEntityGoto(pos, Direction4.NORTH))
-                pos = pos.plusSub(0, speed)
-        } else if(motion.y < 0) {
-            motion += Vec2i(0, speed)
-            if(sceneMain.canEntityGoto(pos, Direction4.SOUTH))
-                pos = pos.minusSub(0, speed)
-        }
-
-        if(!evaluated) {
-            evaluated = true
-            ScriptEvaluator.eval<Any?>(ScriptImplicitReceiver(sceneMain, this, "update"), script!!)
-        }
+        if(!sceneMain.isTalking)
+            ScriptEvaluator.eval<Any?>(ScriptImplicitReceiver(sceneMain, this, "update"), script)
 
         return IEntity.Feedback.CONTINUE
     }
@@ -107,10 +119,19 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun getSerif(sceneMain: SceneMain): Serif? {
 
-        return ScriptEvaluator.eval<Serif>(ScriptImplicitReceiver(sceneMain, this, "serif"), script!!)
+        return ScriptEvaluator.eval<Serif>(ScriptImplicitReceiver(sceneMain, this, "serif"), script ?: return null)
 
     }
 
     override fun isTalkable(sceneMain: SceneMain, player: EntityPlayer) = this !is EntityPlayer
+
+    fun turnRight() {
+        direction = Direction.values()[(direction.ordinal + 1) % Direction.values().size]
+    }
+
+    fun turnLeft() {
+        val i = (direction.ordinal - 1) % Direction.values().size
+        direction = Direction.values()[if(i < 0) Direction.values().size + i else i]
+    }
 
 }

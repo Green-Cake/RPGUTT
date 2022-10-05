@@ -1,13 +1,20 @@
 package crpth.util.render
 
 import crpth.util.render.font.FontManager
+import crpth.util.render.font.TextureCharacters
 import crpth.util.vec.*
 import org.lwjgl.opengl.GL11.*
+import java.awt.Font
 
 class Renderer {
 
     var doDrawOverline = false
     var doDrawUnderline = false
+
+    val fontManager = FontManager(256)
+
+    val fontEn = fontManager.fontMonospaced
+    val fontJa = fontManager.fontYumincho
 
     fun color4b(color: Vec4b) {
         glColor4f(color.r.resizeToInt()/255f, color.g.resizeToInt()/255f,  color.b.resizeToInt()/255f, color.a.resizeToInt()/255f)
@@ -26,29 +33,7 @@ class Renderer {
         glVertex2f(position.x + size.x, position.y + size.y)
     }
 
-    fun drawLineSquare(position: IVec2f, size: IVec2f)  = draw(GL_LINE_LOOP) {
-        glVertex2f(position.x, position.y + size.y)
-        glVertex2f(position.x, position.y)
-        glVertex2f(position.x + size.x, position.y)
-        glVertex2f(position.x + size.x, position.y + size.y)
-    }
-
     fun drawScreen() = drawSquare(Vec2f(-1f, -1f), Vec2f(2f, 2f))
-
-    var lineWidth: Float
-        get() = glGetFloat(GL_LINE_WIDTH)
-        set(value) {
-            glLineWidth(value)
-        }
-
-    var lineSmooth: Boolean
-        get() = glGetBoolean(GL_LINE_SMOOTH)
-        set(value) {
-            if(value)
-                glEnable(GL_LINE_SMOOTH)
-            else
-                glDisable(GL_LINE_SMOOTH)
-        }
 
     fun renderLineStrip(vararg positions: Vec2d) {
 
@@ -146,18 +131,50 @@ class Renderer {
     /**
      * @return the width of the rendered character.
      */
-    fun renderChar(char: Char, position: Vec2d, height: Double): Double {
+    fun renderChar(char: Char, tex: TextureCharacters, position: Vec2d, height: Double): Double {
 
-        return renderTextureAA(FontManager[char], position, height)
+        return renderTextureAA(tex.textureMap[char]!!, position, height)
 
     }
-    fun renderString(str: String, position: Vec2d, height: Double, spacing: Double = 0.0): Double {
+
+    fun getTcOrDynamicallyGen(char: Char, dfont: Font=fontJa) = when(char) {
+
+        in fontManager.textures[fontEn]!!.textureMap ->fontManager.textures[fontEn]!!
+        in fontManager.textures[fontJa]!!.textureMap -> fontManager.textures[fontJa]!!
+        else -> {
+            fontManager.textures[dfont]!!.dynamicLoad(char)
+            fontManager.textures[dfont]!!
+        }
+
+    }
+
+    fun getCharAR(char: Char, tex: TextureCharacters?): Double {
+
+        val c = (tex ?: getTcOrDynamicallyGen(char)).getCharAsTexture(char)
+
+        c.bind()
+        val r = c.getAspectRatio()
+        c.debind()
+
+        return r
+
+    }
+
+    fun getStringAR(str: String, tex: TextureCharacters?): Double {
+
+        return str.sumOf { getCharAR(it, tex) }
+
+    }
+
+    fun renderString(str: String, tex: TextureCharacters?, position: Vec2d, height: Double, spacing: Double = 0.0): Double {
 
         var offset = 0.0
 
         str.forEach {
 
-            offset += renderChar(it, position.plus(offset, 0.0), height) + spacing
+            val t = tex ?: getTcOrDynamicallyGen(it)
+
+            offset += renderChar(it, t, position.plus(offset, 0.0), height) + spacing
 
         }
 
@@ -175,15 +192,19 @@ class Renderer {
 
     }
 
-    fun renderStringCentered(str: String, position: Vec2d, height: Double, spacing: Double = 0.0): Double {
+    fun renderString(str: String, font: Font, position: Vec2d, height: Double, spacing: Double = 0.0) =
+        renderString(str, fontManager.textures[font]!!, position, height, spacing)
 
-        val pos = position.minus(height*getStringAR(str)/2 + spacing*(str.length-1), height/2)
+    fun renderStringCentered(str: String, tex: TextureCharacters?, position: Vec2d, height: Double, spacing: Double = 0.0): Double {
 
-        return renderString(str, pos, height, spacing)
+        val pos = position.minus(height*getStringAR(str, tex)/2 + spacing*(str.length-1), height/2)
+
+        return renderString(str, tex, pos, height, spacing)
 
     }
 
-    fun getStringAR(str: String) = str.length
+    fun renderStringCentered(str: String, font: Font, position: Vec2d, height: Double, spacing: Double = 0.0) =
+        renderStringCentered(str, fontManager.textures[font]!!, position, height, spacing)
 
     inline fun matrix(block: ()->Unit) {
         glPushMatrix()

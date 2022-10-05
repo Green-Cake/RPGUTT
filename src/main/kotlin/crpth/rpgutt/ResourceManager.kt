@@ -40,7 +40,7 @@ object ResourceManager {
 
     }
 
-    fun loadImagesSeparatedAndCountX(stream: InputStream, sizeForEach: Vec2i): Pair<Array<ByteBuffer>, Int> {
+    fun loadSeparatedImagesWithWidth(stream: InputStream, sizeForEach: Vec2i): Pair<Array<ByteBuffer>, Int> {
 
         val bi = ImageIO.read(stream)
         val size = Vec2i(bi.width, bi.height)
@@ -50,11 +50,15 @@ object ResourceManager {
 
         val pixelsRaw = bi.getRGB(0, 0, size.x, size.y, null, 0, size.x)
 
-        val buffers = Array((bi.width/ sizeForEach.x) * (bi.height/sizeForEach.y)) { BufferUtils.createByteBuffer(sizeForEach.x * sizeForEach.y * 4) }
 
-        for(cx in 0 until bi.width/ sizeForEach.x) for(cy in 0 until bi.height/sizeForEach.y) {
+        val sizeX = bi.width / sizeForEach.x
+        val sizeY = bi.height / sizeForEach.y
 
-            val pixels = buffers[(bi.width/ sizeForEach.x)*cy + cx]
+        val buffers = Array(sizeX * sizeY) { BufferUtils.createByteBuffer(sizeForEach.x * sizeForEach.y * 4) }
+
+        for(cx in 0 until sizeX) for(cy in 0 until sizeY) {
+
+            val pixels = buffers[sizeX*cy + cx]
 
             for (i in 0 until sizeForEach.y) for (j in 0 until sizeForEach.x) {
 

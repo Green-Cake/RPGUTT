@@ -13,7 +13,6 @@ import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.vec.*
-import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import java.util.*
 import kotlin.concurrent.thread
@@ -234,7 +233,7 @@ object SceneMain : IScene {
         return Vec2d(
             pos.x.toDouble(),
             pos.y.toDouble()
-        ) *scale - Vec2d.ONE
+        ) * scale - Vec2d.ONE
 
     }
 

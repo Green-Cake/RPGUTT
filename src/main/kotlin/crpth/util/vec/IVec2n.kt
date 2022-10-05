@@ -15,6 +15,6 @@ interface IVec2n<T : Number> {
 
     fun toVec2d() = Vec2d(x.toDouble(), y.toDouble())
 
-    fun setVertex()
+    fun setAsVertex()
 
 }

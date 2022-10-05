@@ -2,12 +2,10 @@ package crpth.rpgutt.entity
 
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.vec.Vec2b
-import crpth.util.vec.Vec4b
 import crpth.util.vec.readFrom
 import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import java.nio.ByteBuffer
 
 class EntitySceneConfig(val param: SceneMain.Parameter, val value: UInt) : EntityScript() {
 

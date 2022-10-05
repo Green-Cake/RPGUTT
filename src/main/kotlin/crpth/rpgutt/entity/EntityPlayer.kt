@@ -6,7 +6,6 @@ import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import java.io.DataInputStream
 import java.io.DataOutputStream
-import kotlin.script.experimental.api.CompiledScript
 
 class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction4) : EntityPerson("arrow", Vec2i(16, 16), pos, size, direction, "null") {
 
@@ -25,8 +24,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction4) : EntityPer
 
     }
 
-    override val script: CompiledScript?
-        get() = null
+    override val script get() = throw Exception()
 
     private fun getTalkableEntity(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
@@ -46,7 +44,10 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction4) : EntityPer
             val target = getTalkableEntity(SceneMain) as IEntityTalkable?
 
             if(target != null)
-                SceneMain.talk(target.getSerif(SceneMain)!!)
+                SceneMain.talk(target.getSerif(SceneMain) ?: run {
+                    RpgUtt.logger.warn("No serif object returned!")
+                    return IEntity.Feedback.CONTINUE
+                })
 
             return IEntity.Feedback.CONTINUE
         }
