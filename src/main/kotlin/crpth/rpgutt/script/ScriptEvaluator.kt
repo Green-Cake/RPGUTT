@@ -1,5 +1,6 @@
 package crpth.rpgutt.script
 
+import crpth.rpgutt.entity.ai.EntityParams
 import kotlin.script.experimental.api.*
 import kotlin.script.experimental.jvm.dependenciesFromCurrentContext
 import kotlin.script.experimental.jvm.jvm
@@ -13,8 +14,8 @@ object ScriptEvaluator {
                 wholeClasspath = true
             )
         }
-        implicitReceivers(ScriptImplicitReceiver::class)
-        defaultImports("crpth.rpgutt.script.lib.*", "crpth.util.vec.*", "kotlin.random.*")
+        implicitReceivers(EntityParams::class)
+        defaultImports("crpth.rpgutt.script.lib.*", "crpth.util.vec.*", "kotlin.random.*", "crpth.rpgutt.entity.ai.*")
     }
 
     val host = BasicJvmScriptingHost()
@@ -26,7 +27,7 @@ object ScriptEvaluator {
         return compiled.valueOr { throw Exception(it.reports.joinToString { r -> r.render() }) }
     }
 
-    inline fun <reified T> eval(receiver: ScriptImplicitReceiver, script: CompiledScript): T? {
+    inline fun <reified T> eval(receiver: EntityParams, script: CompiledScript): T? {
 
         val evaluationConfiguration = ScriptEvaluationConfiguration {
             implicitReceivers(receiver)

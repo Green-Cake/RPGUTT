@@ -10,6 +10,7 @@ import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
+import crpth.util.type.BoundingBox
 import crpth.util.vec.*
 import org.lwjgl.opengl.GL11
 import java.util.*
@@ -33,6 +34,15 @@ object SceneMain : IScene {
     lateinit var entities: EntityParallel
 
     var scale = 0.08
+
+    val renderingBound: BoundingBox get() {
+
+        val numX = 1.0/scale / 3 * 4
+        val numY = numX / 4 * 3
+
+        return BoundingBox.fromPosAndSize(getScroll(), Vec2d(numX, numY))
+
+    }
 
     private val parameters = values().associateWithTo(EnumMap(Parameter::class.java)) {
 

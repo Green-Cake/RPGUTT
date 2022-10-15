@@ -2,12 +2,16 @@ package crpth.rpgutt.entity
 
 import crpth.rpgutt.ResourceManager
 import crpth.rpgutt.RpgUtt
+import crpth.rpgutt.entity.ai.IEntityAI
 import crpth.rpgutt.scene.SceneMain
 import crpth.rpgutt.script.ScriptEvaluator
-import crpth.rpgutt.script.ScriptImplicitReceiver
+import crpth.rpgutt.entity.ai.EntityParams
+import crpth.rpgutt.entity.ai.UpdateType
+import crpth.rpgutt.entity.ai.UpdateType.*
 import crpth.rpgutt.script.lib.Serif
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
+import crpth.util.type.BoundingBox
 import crpth.util.vec.*
 import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
@@ -36,6 +40,9 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
         }
 
     }
+
+    lateinit var ai: IEntityAI
+        private set
 
     var motionCounter = 0
     var motion = Vec2i.ZERO
@@ -69,6 +76,23 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun update(sceneMain: SceneMain): IEntity.Feedback {
 
+        if(!::ai.isInitialized && this !is EntityPlayer) {
+            ai = ScriptEvaluator.eval<Any?>(EntityParams(sceneMain, this, "update"), script) as IEntityAI
+        }
+
+        val doUpdate = when(ai.updateType) {
+            ALWAYS -> {
+                true
+            }
+            WHEN_RENDERED -> {
+                true
+            }
+            WHEN_RENDERED_WIDER -> true
+        }
+
+        if(!doUpdate)
+            return IEntity.Feedback.CONTINUE
+
         if(motionCounter == 0 && !sceneMain.isTalking) {
 
             if(motion.x > 0) {
@@ -94,15 +118,38 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
         }
 
         if(!sceneMain.isTalking)
-            ScriptEvaluator.eval<Any?>(ScriptImplicitReceiver(sceneMain, this, "update"), script)
+//            ScriptEvaluator.eval<Any?>(ScriptImplicitReceiver(sceneMain, this, "update"), script)
+            ai.update(EntityParams(sceneMain, this@EntityPerson, "update"))
 
         return IEntity.Feedback.CONTINUE
     }
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
 
+        if(!doRender(sceneMain, renderer, sceneMain.renderingBound))
+            return
+
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
         renderer.renderTexture(textures[direction.ordinal], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
+
+    }
+
+    override fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox): Boolean {
+
+        val margin = Vec2f(3.0f, 3.0f)
+
+        val self = BoundingBox.fromPosAndSize(pos.toVec2f(), size.toVec2f())
+        val self_m = BoundingBox.fromPosAndSize(pos.toVec2f() - margin/2.0f, size.toVec2f() + margin)
+
+        if(!::ai.isInitialized && this !is EntityPlayer) {
+            ai = ScriptEvaluator.eval<Any?>(EntityParams(sceneMain, this, "update"), script) as IEntityAI
+        }
+
+        return if(this is EntityPlayer) true else when(ai.updateType) {
+            ALWAYS -> true
+            WHEN_RENDERED -> bound.intersects(self)
+            WHEN_RENDERED_WIDER -> bound.intersects(self_m)
+        }
 
     }
 
@@ -119,7 +166,9 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun getSerif(sceneMain: SceneMain): Serif? {
 
-        return ScriptEvaluator.eval<Serif>(ScriptImplicitReceiver(sceneMain, this, "serif"), script ?: return null)
+        return ai.getSerif(EntityParams(sceneMain, this@EntityPerson, "serif"))
+
+//        return ScriptEvaluator.eval<Serif>(ScriptImplicitReceiver(sceneMain, this, "serif"), script ?: return null)
 
     }
 

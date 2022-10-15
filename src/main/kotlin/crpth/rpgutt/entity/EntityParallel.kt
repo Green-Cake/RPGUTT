@@ -3,11 +3,22 @@ package crpth.rpgutt.entity
 import crpth.rpgutt.map.EntityFactory
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.render.Renderer
+import crpth.util.type.BoundingBox
 import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
+class EntityParallel(private val _entities: MutableList<IEntity>) : EntityWithRendering() {
+
+    val entities: List<IEntity> get() = _entities
+
+    private val entries = mutableListOf<IEntity>()
+
+    private val minusEntry = mutableListOf<IEntity>()
+
+    fun requestAddEntity(entity: IEntity) {
+        entries += entity
+    }
 
     companion object {
 
@@ -15,7 +26,7 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
             val number = stream.readShort().resizeToInt()
 
-            val entities = Array(number) {
+            val entities = MutableList(number) {
 
                 val c_id = stream.readShort().toUShort()
                 val size = stream.readShort().resizeToInt()
@@ -31,21 +42,27 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
     }
 
-    val status = Array(entities.size) { IEntity.Feedback.CONTINUE }
-
     override fun update(sceneMain: SceneMain): IEntity.Feedback {
 
-        if(entities.isEmpty())
+        if(_entities.isEmpty())
             return IEntity.Feedback.FINISH
 
-        entities.forEachIndexed { index, entity ->
+        val status = Array(_entities.size) { IEntity.Feedback.CONTINUE }
 
-            if(status[index] == IEntity.Feedback.FINISH)
+        _entities.forEachIndexed { index, entity ->
+
+            if(status[index] == IEntity.Feedback.FINISH) {
+                minusEntry += entity
                 return@forEachIndexed
-
+            }
             status[index] = entity.update(sceneMain)
 
         }
+
+        _entities.addAll(entries)
+        entries.clear()
+        _entities.removeAll(minusEntry)
+        minusEntry.clear()
 
         return if(IEntity.Feedback.CONTINUE !in status)
             IEntity.Feedback.FINISH
@@ -56,10 +73,7 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
 
-        entities.forEachIndexed { index, entity ->
-
-            if(status[index] == IEntity.Feedback.FINISH)
-                return@forEachIndexed
+        _entities.forEachIndexed { index, entity ->
 
             (entity as? EntityWithRendering)?.render(sceneMain, renderer)
 
@@ -67,11 +81,13 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
     }
 
+    override fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = _entities.isNotEmpty()
+
     override fun encode(stream: DataOutputStream) {
 
-        stream.writeShort(entities.size)
+        stream.writeShort(_entities.size)
 
-        entities.forEach {
+        _entities.forEach {
 
             val encoded = it.encode()
             stream.writeShort(it.id.toInt())
@@ -82,6 +98,6 @@ class EntityParallel(val entities: Array<out IEntity>) : EntityWithRendering() {
 
     }
 
-    override fun computeEncodedBinarySize() = entities.sumOf { it.computeEncodedBinarySize() + 4 } + 2
+    override fun computeEncodedBinarySize() = _entities.sumOf { it.computeEncodedBinarySize() + 4 } + 2
 
 }

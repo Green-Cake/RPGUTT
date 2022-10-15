@@ -31,7 +31,7 @@ fun main(args: Array<String>) {
 
 fun order(vararg entities: IEntity) = EntityOrderedList(entities)
 
-fun parallel(vararg entities: IEntity) = EntityParallel(entities)
+fun parallel(vararg entities: IEntity) = EntityParallel(entities.toMutableList())
 
 fun waits(duration: Float) = EntityWait(duration)
 

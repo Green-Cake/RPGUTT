@@ -52,6 +52,12 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
             return IEntity.Feedback.CONTINUE
         }
 
+        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_P)) {
+
+            sceneMain.entities.requestAddEntity(EntityPerson("arrow", Vec2i(16, 16), pos, Vec2f(1f, 1f), Direction.SOUTH, "entity/test"))
+
+        }
+
         val amount = 1
         val cap = 7
         val strictCap = 1

@@ -3,6 +3,7 @@ package crpth.rpgutt.entity
 import crpth.rpgutt.map.EntityFactory
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.render.Renderer
+import crpth.util.type.BoundingBox
 import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -81,4 +82,6 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
         (entities[cursor] as? EntityWithRendering)?.render(sceneMain, renderer)
 
     }
+
+    override fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
 }

@@ -2,6 +2,7 @@ package crpth.util.render
 
 import crpth.util.render.font.FontManager
 import crpth.util.render.font.TextureCharacters
+import crpth.util.type.BoundingBox
 import crpth.util.vec.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Font

@@ -1,9 +1,13 @@
 package crpth.rpgutt.entity.ai
 
-import crpth.rpgutt.entity.IEntity
+import crpth.rpgutt.script.lib.Serif
 
 interface IEntityAI {
 
-    fun update(entity: IEntity)
+    val updateType: UpdateType
+
+    fun getSerif(params: EntityParams): Serif
+
+    fun update(params: EntityParams)
 
 }
