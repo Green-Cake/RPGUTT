@@ -1,6 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.RpgUtt
+import crpth.rpgutt.entity.ai.IEntityAI
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
@@ -24,9 +25,10 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     }
 
-    override val script get() = throw Exception()
+    override val ai: IEntityAI
+        get() = throw Exception()
 
-    private fun getTalkableEntity(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
+    private fun getEntityToTalkWith(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
                 if(direction == Direction.NORTH || direction == Direction.EAST)
                     it.intersects(pos.toVec2f()+direction.component.toVec2f(), size - direction.component.toVec2f()/4f)
@@ -41,7 +43,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
         if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
 
-            val target = getTalkableEntity(SceneMain) as IEntityTalkable?
+            val target = getEntityToTalkWith(SceneMain) as IEntityTalkable?
 
             if(target != null)
                 SceneMain.talk(target.getSerif(SceneMain) ?: run {
@@ -69,17 +71,17 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
         if (flagW || flagS) {
             direction = if(flagW) Direction.NORTH else Direction.SOUTH
-            val dist = if(flagW) pos.plusSub(0, amount) else pos.plusSub(0, -amount)
+            val dist = if(flagW) pos.plus(0, amount) else pos.plus(0, -amount)
 
             if(SceneMain.canPlayerGoto(direction))
                 pos = dist
             else for(i in 1..cap) {
-                if(SceneMain.canEntityGoto(pos.plusSub(i, 0), direction)) {
-                    pos = if(i <= strictCap) dist.plusSub(i, 0) else pos.plusSub(1, 0)
+                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
+                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
                     break
                 }
-                else if(SceneMain.canEntityGoto(pos.minusSub(i, 0), direction)) {
-                    pos = if(i <= strictCap) dist.minusSub(i, 0) else pos.minusSub(1, 0)
+                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
+                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
                     break
                 }
             }
@@ -88,19 +90,19 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
         if (flagA || flagD) {
             direction = if(flagD) Direction.EAST else Direction.WEST
-            val dist = if(flagD) pos.plusSub(amount, 0) else pos.plusSub(-amount, 0)
+            val dist = if(flagD) pos.plus(amount, 0) else pos.plus(-amount, 0)
 
             if(SceneMain.canPlayerGoto(direction))
                 pos = dist
             else {
 
                 for(i in 1..cap) {
-                    if(SceneMain.canEntityGoto(pos.plusSub(0, i), direction)) {
-                        pos = if(i <= strictCap) dist.plusSub(0, i) else pos.plusSub(0, 1)
+                    if(SceneMain.canEntityGoto(pos.plus(0, i), direction)) {
+                        pos = if(i <= strictCap) dist.plus(0, i) else pos.plus(0, 1)
                         break
                     }
-                    else if(SceneMain.canEntityGoto(pos.minusSub(0, i), direction)) {
-                        pos = if(i <= strictCap) dist.minusSub(0, i) else pos.minusSub(0, 1)
+                    else if(SceneMain.canEntityGoto(pos.minus(0, i), direction)) {
+                        pos = if(i <= strictCap) dist.minus(0, i) else pos.minus(0, 1)
                         break
                     }
                 }
@@ -114,7 +116,9 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     override fun encode(stream: DataOutputStream) {
 
-        stream.writeLong(pos.data.data.toLong())
+        stream.writeInt(pos.data.x)
+        stream.writeInt(pos.data.y)
+        stream.writeInt(pos.data.z)
         stream.writeLong(size.data.toLong())
         stream.writeByte(direction.ordinal)
 

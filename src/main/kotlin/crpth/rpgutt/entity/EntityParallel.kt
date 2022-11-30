@@ -81,7 +81,7 @@ class EntityParallel(private val _entities: MutableList<IEntity>) : EntityWithRe
 
     }
 
-    override fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = _entities.isNotEmpty()
+    override fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = _entities.isNotEmpty()
 
     override fun encode(stream: DataOutputStream) {
 

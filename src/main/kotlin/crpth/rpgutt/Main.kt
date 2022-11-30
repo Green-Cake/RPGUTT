@@ -59,8 +59,8 @@ fun compile() {
     )
 
     val post = parallel(
-        EntityPlayer(GamePos(0u, 0u), Vec2f(1f, 1f), Direction.NORTH),
-        EntityPerson("arrow", Vec2i(16, 16), GamePos(7u, 7u), Vec2f(1f, 1f), Direction.SOUTH, "entity/test")
+        EntityPlayer(GamePos.ZERO, Vec2f(1f, 1f), Direction.NORTH),
+        EntityPerson("arrow", Vec2i(16, 16), GamePos(7, 7), Vec2f(1f, 1f), Direction.SOUTH, "entity/test")
     )
 
     val map = TileMap("temporary", Vec2s(100, 100), UShortArray(100*100) { if(Random.nextInt(16) == 0) 2u.toUShort() else 3u.toUShort() }, listOf(pre.createFactory(), post.createFactory()))

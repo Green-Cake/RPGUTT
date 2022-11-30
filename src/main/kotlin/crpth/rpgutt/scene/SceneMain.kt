@@ -11,15 +11,18 @@ import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.type.BoundingBox
+import crpth.util.vec
 import crpth.util.vec.*
+import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
 import java.util.*
 import kotlin.concurrent.thread
+import kotlin.math.abs
 import kotlin.math.ceil
 
 object SceneMain : IScene {
 
-    var rotateX = 0f
+    var rotation = Vec3f(0.0f, 0.0f, 0.0f)
 
     val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/tiles0.png", Vec2i(16, 16))
 
@@ -33,7 +36,9 @@ object SceneMain : IScene {
 
     lateinit var entities: EntityParallel
 
-    var scale = 0.08
+    val zoomValues = listOf(0.05, 0.08, 0.1, 0.12)
+
+    var scale = zoomValues[1]
 
     val renderingBound: BoundingBox get() {
 
@@ -63,6 +68,10 @@ object SceneMain : IScene {
     val player: EntityPlayer get() = entities.entities.filterIsInstance<EntityPlayer>().first()
 
     val playerCanMove get() = !isTalking
+
+    var isZooming = false
+    var zoomTarget = 0.0
+    var zoomSpeed = 0.002
 
     fun setParam(p: Parameter, value: UInt) {
         parameters[p] = value
@@ -97,14 +106,43 @@ object SceneMain : IScene {
 
     }
 
+    fun startZoom(value: Double) {
+        isZooming = true
+        zoomTarget = value
+    }
+
     override fun update() {
 
         if(!isLoadingFinished)
             return
 
+        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_UP)) {
+            startZoom(zoomValues[(zoomValues.indexOf(zoomValues.minBy { abs(scale - it) })+1).coerceIn(0..zoomValues.lastIndex)])
+        } else if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+            startZoom(zoomValues[(zoomValues.indexOf(zoomValues.minBy { abs(scale - it) })-1).coerceIn(0..zoomValues.lastIndex)])
+        }
+
         if(statusPre == IEntity.Feedback.CONTINUE) {
             statusPre = entitiesPre.update(this)
             return
+        }
+
+        if(isZooming) {
+
+            if(abs(scale - zoomTarget) < zoomSpeed*2) {
+                scale = zoomTarget
+                zoomTarget = 0.0
+                isZooming = false
+            }
+
+            if(scale > zoomTarget) {
+                scale -= zoomSpeed
+            }
+
+            if(scale < zoomTarget) {
+                scale += zoomSpeed
+            }
+
         }
 
         /*
@@ -145,7 +183,7 @@ object SceneMain : IScene {
 
             GL11.glTranslated(s.x, s.y*RpgUtt.windowSize.x.toDouble()/RpgUtt.windowSize.y, 0.0)
             GL11.glScaled(1.0, RpgUtt.windowSize.x.toDouble()/RpgUtt.windowSize.y, 1.0)
-            renderer.rotate(Vec3f(rotateX, 0f, 0f))
+            renderer.rotate(rotation)
 
             if(parameters[RENDER_TILES] != 0u) {
 
@@ -168,15 +206,14 @@ object SceneMain : IScene {
                     }
 
                     val tex = tileSet[map[x, y].toShort().resizeToInt()]
-                    val pos = GamePos(Vec2s(x, y))
+                    val pos = GamePos(x, y)
 
                     GL11.glColor4f(1f, 1f, 1f, 1f)
                     renderer.renderTexture(tex, getActualPos(pos), getActualSize(Vec2f.ONE), initColor=Vec4f.WHITE)
 
                 }
+
             }
-
-
 
             if(parameters[RENDER_ENTITIES] != 0u) {
                 entities.render(this, renderer)
@@ -202,10 +239,7 @@ object SceneMain : IScene {
      */
     fun getActualPos(pos: GamePos): Vec2d {
 
-        return Vec2d(
-            pos.pixel.x.toUInt().toDouble() + pos.subpixel.x.toUInt().toDouble()/16.0,
-            pos.pixel.y.toUInt().toDouble() + pos.subpixel.y.toUInt().toDouble()/16.0
-        ) *scale - Vec2d.ONE
+        return pos.toVec2d()*scale - Vec2d.ONE
 
     }
 
@@ -242,20 +276,20 @@ object SceneMain : IScene {
         when(d) {
             Direction.NORTH, Direction.SOUTH -> {
 
-                if(position.subpixel.y != 0u.toUByte())
+                if(position.subpixel.y != 0)
                     return true
 
             }
             Direction.EAST, Direction.WEST -> {
 
-                if(position.subpixel.x != 0u.toUByte())
+                if(position.subpixel.x != 0)
                     return true
 
             }
         }
 
         val p0 = when(d) {
-            Direction.NORTH, Direction.EAST -> position.pixel.toVec2i() + d.component
+            Direction.NORTH, Direction.EAST -> position.pixel + d.component
             else -> position.pixel.toVec2i() + d.component
         }
 
@@ -263,8 +297,8 @@ object SceneMain : IScene {
             return false
 
         val p1 = p0 + when {
-            (d == Direction.NORTH || d == Direction.SOUTH) && position.subpixel.x != 0u.toUByte() -> Direction.EAST.component
-            (d == Direction.WEST || d == Direction.EAST) && position.subpixel.y != 0u.toUByte() -> Direction.NORTH.component
+            (d == Direction.NORTH || d == Direction.SOUTH) && position.subpixel.x != 0 -> Direction.EAST.component
+            (d == Direction.WEST || d == Direction.EAST) && position.subpixel.y != 0 -> Direction.NORTH.component
             else -> return true
         }
 

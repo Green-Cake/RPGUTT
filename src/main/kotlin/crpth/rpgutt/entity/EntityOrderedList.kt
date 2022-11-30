@@ -83,5 +83,5 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
 
     }
 
-    override fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
+    override fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
 }

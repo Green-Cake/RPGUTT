@@ -8,6 +8,6 @@ abstract class EntityWithRendering : IEntity {
 
     abstract fun render(sceneMain: SceneMain, renderer: Renderer)
 
-    open fun doRender(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox): Boolean = true
+    open fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox): Boolean = true
 
 }

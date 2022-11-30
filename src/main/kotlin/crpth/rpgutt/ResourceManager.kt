@@ -101,6 +101,6 @@ object ResourceManager {
         return MemoryUtil.memSlice(buffer)
     }
 
-    fun loadScriptSrc(path: String) = String(ClassLoader.getSystemResourceAsStream("assets/rpgutt/script/$path.kts").readBytes())
+    fun loadScriptSrc(path: String) = String(ClassLoader.getSystemResourceAsStream("assets/rpgutt/script/$path.kts")!!.readBytes())
 
 }
