@@ -7,3 +7,5 @@ const val NULL = MemoryUtil.NULL
 
 const val TRUE = GLFW.GLFW_TRUE
 const val FALSE = GLFW.GLFW_FALSE
+
+const val DEBUG_MODE = true

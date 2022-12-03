@@ -11,6 +11,8 @@ object : IEntityAI {
 
     override fun update(params: EntityParams) {
 
+        params.self.speed = 1
+
         if(!params.isTalking && params.self.motion == Vec2i.ZERO) {
             params.self.turnRight()
             params.self.move(amount = Random.nextInt(50) + 50)

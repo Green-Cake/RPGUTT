@@ -16,7 +16,7 @@ repositories {
 
 val lwjglVersion = "3.3.1"
 
-val lwjglNatives = "natives-windows"
+val lwjglNatives = "natives-macos"
 
 repositories {
     mavenCentral()

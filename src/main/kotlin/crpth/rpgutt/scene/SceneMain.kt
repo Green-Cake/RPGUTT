@@ -1,5 +1,6 @@
 package crpth.rpgutt.scene
 
+import crpth.rpgutt.DEBUG_MODE
 import crpth.rpgutt.RpgUtt
 import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
@@ -65,7 +66,7 @@ object SceneMain : IScene {
 
     var currentSerifEntity: EntitySerif? = null
 
-    val player: EntityPlayer get() = entities.entities.filterIsInstance<EntityPlayer>().first()
+    val player: EntityPlayer get() = entities.childs.filterIsInstance<EntityPlayer>().first()
 
     val playerCanMove get() = !isTalking
 
@@ -223,6 +224,26 @@ object SceneMain : IScene {
 
         currentSerifEntity?.render(this, renderer)
 
+        if(DEBUG_MODE) {//TODO
+
+            GL11.glColor3f(0f, 1f, 0.2f)
+
+            renderer.renderTextLines(0.05,
+                "world: ${tileSet.width}x${tileSet.width}",
+                "player: ${player.pos}",
+                String.format("scale: %.2f", 1.0 / scale),
+                "entity: ${entities.childs.size}"
+            )
+        }
+
+    }
+
+    fun Renderer.renderTextLines(height: Double, vararg lines: String) {
+        var offset = height
+        lines.forEach {
+            renderString(it, fontEn, vec(-0.95, 1.0 - offset), height)
+            offset += height
+        }
     }
 
     override fun reset() {
@@ -259,7 +280,7 @@ object SceneMain : IScene {
 
     fun getScroll(): Vec2d {
 
-        val player = entities.entities.filterIsInstance<EntityPlayer>().first()
+        val player = entities.childs.filterIsInstance<EntityPlayer>().first()
 
         return -getActualPos(player.pos)
 

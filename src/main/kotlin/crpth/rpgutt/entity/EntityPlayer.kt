@@ -25,10 +25,14 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     }
 
+    init {
+        speed = 16
+    }
+
     override val ai: IEntityAI
         get() = throw Exception()
 
-    private fun getEntityToTalkWith(sceneMain: SceneMain) = sceneMain.entities.entities.firstOrNull {
+    private fun getEntityToTalkWith(sceneMain: SceneMain) = sceneMain.entities.childs.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
                 if(direction == Direction.NORTH || direction == Direction.EAST)
                     it.intersects(pos.toVec2f()+direction.component.toVec2f(), size - direction.component.toVec2f()/4f)
@@ -60,56 +64,99 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
         }
 
-        val amount = 1
-        val cap = 7
-        val strictCap = 1
-
         val flagW = RpgUtt.isKeyDown(GLFW.GLFW_KEY_W)
         val flagA = RpgUtt.isKeyDown(GLFW.GLFW_KEY_A)
         val flagS = RpgUtt.isKeyDown(GLFW.GLFW_KEY_S)
         val flagD = RpgUtt.isKeyDown(GLFW.GLFW_KEY_D)
 
-        if (flagW || flagS) {
-            direction = if(flagW) Direction.NORTH else Direction.SOUTH
-            val dist = if(flagW) pos.plus(0, amount) else pos.plus(0, -amount)
+        val amount = if((flagW || flagS) && (flagA || flagD)) 11 else 16
+        val cap = 112
+        val strictCap = 16
 
-            if(SceneMain.canPlayerGoto(direction))
-                pos = dist
-            else for(i in 1..cap) {
-                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
-                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
-                    break
+        run y_side@ {
+            if (flagW || flagS) {
+                direction = if(flagW) Direction.NORTH else Direction.SOUTH
+                val dist = if(flagW) GamePos.sub(0, 1) else GamePos.sub(0, -1)
+
+                var i = amount
+                while(i != 0) {
+
+                    if(!SceneMain.canPlayerGoto(direction))
+                        return@y_side
+
+                    pos += dist
+                    --i
                 }
-                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
-                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
-                    break
-                }
-            }
 
-        }
-
-        if (flagA || flagD) {
-            direction = if(flagD) Direction.EAST else Direction.WEST
-            val dist = if(flagD) pos.plus(amount, 0) else pos.plus(-amount, 0)
-
-            if(SceneMain.canPlayerGoto(direction))
-                pos = dist
-            else {
-
-                for(i in 1..cap) {
-                    if(SceneMain.canEntityGoto(pos.plus(0, i), direction)) {
-                        pos = if(i <= strictCap) dist.plus(0, i) else pos.plus(0, 1)
-                        break
-                    }
-                    else if(SceneMain.canEntityGoto(pos.minus(0, i), direction)) {
-                        pos = if(i <= strictCap) dist.minus(0, i) else pos.minus(0, 1)
-                        break
-                    }
-                }
+//            if(SceneMain.canPlayerGoto(direction))
+//                pos = pos + dist
+//            else for(i in 1..cap) {
+//                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
+//                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
+//                    break
+//                }
+//                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
+//                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
+//                    break
+//                }
+//            }
 
             }
-
         }
+
+        run x_side@ {
+            if (flagA || flagD) {
+                direction = if(flagA) Direction.WEST else Direction.EAST
+                val dist = if(flagD) GamePos.sub(1, 0) else GamePos.sub(-1, 0)
+
+                var i = amount
+                while(i != 0) {
+
+                    if(!SceneMain.canPlayerGoto(direction))
+                        return IEntity.Feedback.CONTINUE
+
+                    pos += dist
+                    --i
+                }
+
+//            if(SceneMain.canPlayerGoto(direction))
+//                pos = pos + dist
+//            else for(i in 1..cap) {
+//                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
+//                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
+//                    break
+//                }
+//                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
+//                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
+//                    break
+//                }
+//            }
+
+            }
+        }
+
+//        if (flagA || flagD) {
+//            direction = if(flagD) Direction.EAST else Direction.WEST
+//            val dist = if(flagD) pos.plus(amount, 0) else pos.plus(-amount, 0)
+//
+//            if(SceneMain.canPlayerGoto(direction))
+//                pos = dist
+//            else {
+//
+//                for(i in 1..cap) {
+//                    if(SceneMain.canEntityGoto(pos.plus(0, i), direction)) {
+//                        pos = if(i <= strictCap) dist.plus(0, i) else pos.plus(0, 1)
+//                        break
+//                    }
+//                    else if(SceneMain.canEntityGoto(pos.minus(0, i), direction)) {
+//                        pos = if(i <= strictCap) dist.minus(0, i) else pos.minus(0, 1)
+//                        break
+//                    }
+//                }
+//
+//            }
+//
+//        }
 
         return IEntity.Feedback.CONTINUE
     }

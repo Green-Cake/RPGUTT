@@ -8,9 +8,11 @@ import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityParallel(private val _entities: MutableList<IEntity>) : EntityWithRendering() {
+class EntityParallel(entityList: List<IEntity>) : EntityWithRendering() {
 
-    val entities: List<IEntity> get() = _entities
+    private val _entities: MutableList<IEntity> = entityList.toMutableList()
+
+    val childs: List<IEntity> get() = _entities
 
     private val entries = mutableListOf<IEntity>()
 
