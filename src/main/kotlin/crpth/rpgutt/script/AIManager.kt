@@ -10,21 +10,19 @@ import kotlin.script.experimental.host.StringScriptSource
 
 object AIManager {
 
-    val loadedAIs = mutableMapOf<UShort, IEntityAI>()
+    val loadedAIs = mutableMapOf<String, IEntityAI>()
 
-    fun get(entityID: UShort): IEntityAI? = loadedAIs[entityID]
-
-    fun get(entity: EntityPerson): IEntityAI? = get(entity.id)
+    fun get(scriptSrcPath: String): IEntityAI? = loadedAIs[scriptSrcPath]
 
     @Throws(NoSuchFileException::class)
-    fun load(entity: EntityPerson, scriptSrcPath: String): IEntityAI {
+    fun load(scriptSrcPath: String): IEntityAI {
 
-        if(entity.id in loadedAIs)
-            return loadedAIs[entity.id]!!
+        if(scriptSrcPath in loadedAIs)
+            return get(scriptSrcPath)!!
 
         val script = try {
             if(scriptSrcPath == "null") {
-                RpgUtt.logger.warn("Script file not specified! (entity: $entity.name)")
+                RpgUtt.logger.warn("Script file not specified!")
                 throw NoSuchFileException(File(ClassLoader.getSystemResource("assets/rpgutt/script/$scriptSrcPath.kts").toURI()))
             } else {
                 ScriptEvaluator.compile(StringScriptSource(ResourceManager.loadScriptSrc(scriptSrcPath)))
@@ -33,9 +31,20 @@ object AIManager {
             throw NoSuchFileException(File(ClassLoader.getSystemResource("assets/rpgutt/script/$scriptSrcPath.kts").toURI()))
         }
 
-        val ai = ScriptEvaluator.eval<Any?>(EntityParams(entity, "update"), script) as IEntityAI
+        val ai = ScriptEvaluator.eval<Any?>(script) as IEntityAI
 
-        loadedAIs[entity.id] = ai
+        loadedAIs[scriptSrcPath] = ai
+
+        return ai
+
+    }
+
+    fun load(dummySrcPath: String, ai: IEntityAI): IEntityAI {
+
+        if(dummySrcPath in loadedAIs)
+            return get(dummySrcPath)!!
+
+        loadedAIs[dummySrcPath] = ai
 
         return ai
 

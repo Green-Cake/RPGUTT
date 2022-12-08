@@ -3,7 +3,7 @@ package crpth.rpgutt.entity.ai
 import crpth.rpgutt.entity.EntityPerson
 import crpth.rpgutt.scene.SceneMain
 
-class EntityParams(val self: EntityPerson, val situation: String="") {
+class EntityParams(val self: EntityPerson) {
 
     val GAME_VERSION = "1.0.0"
 

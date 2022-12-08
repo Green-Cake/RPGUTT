@@ -8,7 +8,7 @@ import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityParallel(entityList: List<IEntity>) : EntityWithRendering() {
+class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : EntityWithRendering() {
 
     private val _entities: MutableList<IEntity> = entityList.toMutableList()
 
@@ -75,9 +75,9 @@ class EntityParallel(entityList: List<IEntity>) : EntityWithRendering() {
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
 
-        _entities.forEachIndexed { index, entity ->
+        _entities.filterIsInstance<EntityWithRendering>().sortedBy { it.posZ }.forEachIndexed { index, entity ->
 
-            (entity as? EntityWithRendering)?.render(sceneMain, renderer)
+            entity.render(sceneMain, renderer)
 
         }
 

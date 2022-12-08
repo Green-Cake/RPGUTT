@@ -10,7 +10,9 @@ import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val color: Vec4b, val duration: Float, val fadeIn: Float, val fadeOut: Float) : EntityWithRendering() {
+class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val color: Vec4b, val duration: Float, val fadeIn: Float, val fadeOut: Float,
+                     override val posZ: Int=10
+) : EntityWithRendering() {
 
     companion object {
 

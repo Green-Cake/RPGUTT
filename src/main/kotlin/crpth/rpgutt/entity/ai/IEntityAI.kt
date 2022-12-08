@@ -10,4 +10,6 @@ interface IEntityAI {
 
     fun update(params: EntityParams)
 
+    fun init(params: EntityParams)
+
 }

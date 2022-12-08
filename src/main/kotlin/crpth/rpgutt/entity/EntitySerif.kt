@@ -11,7 +11,7 @@ import org.lwjgl.opengl.GL11.glColor4f
 import java.io.DataOutputStream
 import kotlin.math.roundToInt
 
-class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : EntityWithRendering(), Unencodable {
+class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, override val posZ: Int=-10) : EntityWithRendering(), Unencodable {
 
     var shouldFinish = false
 

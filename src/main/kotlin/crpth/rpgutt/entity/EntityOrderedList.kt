@@ -8,7 +8,7 @@ import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering() {
+class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int=0) : EntityWithRendering() {
 
     companion object {
 

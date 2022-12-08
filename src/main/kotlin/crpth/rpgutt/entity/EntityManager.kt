@@ -37,6 +37,9 @@ object EntityManager {
         register(30u, EntityPerson::class, EntityPerson::decode)
         register(100u, EntityPlayer::class, EntityPlayer::decode)
 
+        register(1000u, EntityMovable::class, EntityMovable::decode)
+
+
     }
 
 }

@@ -27,11 +27,15 @@ value class GamePos(val data: Vec3i) {
 
     val subpixel get() = Vec2i(data.x % PIXEL_AREA, data.y % PIXEL_AREA)
 
+    val raw2i get() = Vec2i(data.x, data.y)
+
     val z get() = data.z
 
     constructor(x: Int, y: Int, sx: Byte=0, sy: Byte=0, z: Int=0) : this(
         Vec3i((x shl BITS_FOR_SUBPIXEL) + sx, (y shl BITS_FOR_SUBPIXEL) + sy, z)
     )
+
+    fun withZ(z: Int) = GamePos(Vec3i(data.x, data.y, z))
 
     operator fun plus(other: GamePos) = GamePos(data + other.data)
 

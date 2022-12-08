@@ -1,3 +1,7 @@
+import crpth.rpgutt.entity.Direction
+import crpth.rpgutt.entity.ai.EntityParams
+import crpth.util.vec.Vec2i
+import kotlin.math.abs
 
 object : IEntityAI {
     
@@ -9,13 +13,29 @@ object : IEntityAI {
         atom(color(1.0, 0.0, 0.2), perChar(10), "安心してね")
     )
 
+    override fun init(params: EntityParams) {
+
+        params.self.speed = 16
+
+    }
+
     override fun update(params: EntityParams) {
 
-        params.self.speed = 1
-
         if(!params.isTalking && params.self.motion == Vec2i.ZERO) {
-            params.self.turnRight()
-            params.self.move(amount = Random.nextInt(50) + 50)
+
+            val a = params.player.pos.raw2i - params.self.pos.raw2i
+
+            if(abs(a.x) > abs(a.y)) {
+
+                params.self.direction = if(a.x > 0) Direction.EAST else Direction.WEST
+
+            } else {
+
+                params.self.direction = if(a.y > 0) Direction.NORTH else Direction.SOUTH
+
+            }
+
+            params.self.move(amount = Random.nextInt(10)*256)
         }
 
     }

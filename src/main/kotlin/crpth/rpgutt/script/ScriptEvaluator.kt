@@ -14,7 +14,6 @@ object ScriptEvaluator {
                 wholeClasspath = true
             )
         }
-        implicitReceivers(EntityParams::class)
         defaultImports("crpth.rpgutt.script.lib.*", "crpth.util.vec.*", "kotlin.random.*", "crpth.rpgutt.entity.ai.*")
     }
 
@@ -27,10 +26,10 @@ object ScriptEvaluator {
         return compiled.valueOr { throw Exception(it.reports.joinToString { r -> r.render() }) }
     }
 
-    inline fun <reified T> eval(receiver: EntityParams, script: CompiledScript): T? {
+    inline fun <reified T> eval(script: CompiledScript): T? {
 
         val evaluationConfiguration = ScriptEvaluationConfiguration {
-            implicitReceivers(receiver)
+            implicitReceivers()
         }
 
         val res = host.runInCoroutineContext { host.evaluator(script, evaluationConfiguration) }

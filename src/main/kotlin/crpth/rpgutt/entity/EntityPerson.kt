@@ -35,7 +35,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     }
 
-    open val ai get() = AIManager.load(this, scriptSrcPath)
+    open val ai by lazy { AIManager.load(scriptSrcPath) }
 
     var motionCounter = 0
     var motion = Vec2i.ZERO
@@ -50,6 +50,8 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
     fun move(d: Direction=direction, amount: Int=1) {
         motion += d.component*amount
     }
+
+    private var isInitialized = false
 
     override fun update(sceneMain: SceneMain): IEntity.Feedback {
 
@@ -66,43 +68,61 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
         if(!doUpdate)
             return IEntity.Feedback.CONTINUE
 
+        if(!isInitialized) {
+            ai.init(EntityParams(this))
+            isInitialized = true
+        }
+
         if(motionCounter == 0 && !sceneMain.isTalking) {
 
             if(motion.x > 0) {
                 motion -= Vec2i(speed, 0)
-                if(sceneMain.canEntityGoto(pos, Direction.EAST))
-                    pos = pos.plus(speed, 0)
+                repeat(speed) {
+                    if(sceneMain.canEntityGoto(this, Direction.EAST))
+                        pos = pos.plus(1, 0)
+                }
             } else if(motion.x < 0) {
                 motion += Vec2i(speed, 0)
-                if(sceneMain.canEntityGoto(pos, Direction.WEST))
-                    pos = pos.minus(speed, 0)
+                repeat(speed) {
+                    if(sceneMain.canEntityGoto(this, Direction.WEST))
+                        pos = pos.minus(1, 0)
+                }
             }
 
             if(motion.y > 0) {
                 motion -= Vec2i(0, speed)
-                if(sceneMain.canEntityGoto(pos, Direction.NORTH))
-                    pos = pos.plus(0, speed)
+                repeat(speed) {
+                    if(sceneMain.canEntityGoto(this, Direction.NORTH))
+                        pos = pos.plus(0, 1)
+                }
             } else if(motion.y < 0) {
                 motion += Vec2i(0, speed)
-                if(sceneMain.canEntityGoto(pos, Direction.SOUTH))
-                    pos = pos.minus(0, speed)
+                repeat(speed) {
+                    if(sceneMain.canEntityGoto(this, Direction.SOUTH))
+                        pos = pos.minus(0, 1)
+                }
             }
 
         }
 
         if(!sceneMain.isTalking)
-            ai.update(EntityParams(this@EntityPerson, "update"))
+            ai.update(EntityParams(this@EntityPerson))
 
         return IEntity.Feedback.CONTINUE
     }
 
+    var tick = 0
+
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
 
-        if(!isRenderingTarget(sceneMain, renderer, sceneMain.renderingBound))
-            return
+//        if(!isRenderingTarget(sceneMain, renderer, sceneMain.renderingBound))
+//            return
+        //TODO
+
+        tick = (tick+1) % 60
 
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
-        renderer.renderTexture(textures[direction.ordinal], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
+        renderer.renderTexture(textures[direction.ordinal*3 + (tick/20)], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
 
     }
 
@@ -134,7 +154,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun getSerif(sceneMain: SceneMain): Serif? {
 
-        return ai.getSerif(EntityParams(this@EntityPerson, "serif"))
+        return ai.getSerif(EntityParams(this@EntityPerson))
 
 //        return ScriptEvaluator.eval<Serif>(ScriptImplicitReceiver(sceneMain, this, "serif"), script ?: return null)
 

@@ -17,13 +17,15 @@ object TileMapGenerator {
      */
     fun generate(map: TileMap): ByteArray {
 
-        val buffer = ByteBuffer.allocate(10 + map.size.x*map.size.y*2 + map.entityFactories.sumOf { it.meta.size + 4 })
+        val buffer = ByteBuffer.allocate(11 + map.size.x*map.size.y*2 + map.entityFactories.sumOf { it.meta.size + 4 })
         buffer.putShort(PREFIX.data.toShort())
 
         buffer.putInt(map.size.data.toInt())
 
-        for(i in 0 until map.size.x*map.size.y) {
-            buffer.putShort(map.tiles[i].toShort())
+        buffer.put(map.layerCount.toByte())
+
+        for(l in 0 until map.layerCount) for(i in 0 until map.size.x*map.size.y) {
+            buffer.putShort(map.tiles[l][i].toShort())
         }
 
         buffer.putShort(map.entityFactories.size.toShort())

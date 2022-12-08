@@ -6,6 +6,8 @@ import crpth.util.type.BoundingBox
 
 abstract class EntityWithRendering : IEntity {
 
+    abstract val posZ: Int
+
     abstract fun render(sceneMain: SceneMain, renderer: Renderer)
 
     open fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox): Boolean = true

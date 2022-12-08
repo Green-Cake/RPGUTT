@@ -25,10 +25,10 @@ object SceneMain : IScene {
 
     var rotation = Vec3f(0.0f, 0.0f, 0.0f)
 
-    val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/tiles0.png", Vec2i(16, 16))
+    val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/BrightForest-A2.png", Vec2i(32, 32))
 
     val barrierTiles = setOf<UShort>(
-        0u, 1u, 2u
+//        0u, 1u, 2u
     )
 
     lateinit var map: TileMap
@@ -103,6 +103,10 @@ object SceneMain : IScene {
             isLoadingFinished = true
         }
 
+        loadSound("fantasy08", "bgm/fantasy08.ogg", true)
+        setVolume("fantasy08", 0.03)
+        play("fantasy08")
+
         GL11.glViewport(0, 0, RpgUtt.windowSize.x, RpgUtt.windowSize.y)
 
     }
@@ -142,6 +146,17 @@ object SceneMain : IScene {
 
             if(scale < zoomTarget) {
                 scale += zoomSpeed
+            }
+
+        }
+
+        if(DEBUG_MODE) {
+
+            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_L)) {
+
+                entities.requestAddEntity(EntityMovable("rock", Vec2i(16, 16), player.pos.plus(GamePos(2, 2)), Vec2f.ONE))
+//                entities.requestAddEntity(EntityGimmick("rock", Vec2i(16, 16), player.pos.plus(GamePos(2, 2)), Vec2f(1f, 1f)))
+
             }
 
         }
@@ -198,19 +213,32 @@ object SceneMain : IScene {
 
                     if(x < 0 || y < 0 || x >= map.size.x || y >= map.size.y) {
 
-                        val tex = tileSet[parameters[TILE_ID_VOID]?.toInt() ?: 0]
                         val pos = getActualPos(Vec2i(x, y))
+                        val tex = tileSet[parameters[TILE_ID_VOID]?.toInt() ?: 0]
                         GL11.glColor4f(1f, 1f, 1f, 1f)
                         renderer.renderTexture(tex, pos, getActualSize(Vec2f.ONE), initColor=Vec4f.WHITE)
 
                         continue
                     }
 
-                    val tex = tileSet[map[x, y].toShort().resizeToInt()]
                     val pos = GamePos(x, y)
 
-                    GL11.glColor4f(1f, 1f, 1f, 1f)
-                    renderer.renderTexture(tex, getActualPos(pos), getActualSize(Vec2f.ONE), initColor=Vec4f.WHITE)
+                    for (layer in 0 until map.layerCount){
+
+                        val tileID = map[layer, x, y].toShort().resizeToInt()
+
+                        if(tileID == 0)
+                            continue
+
+                        val tex = tileSet[tileID+1]
+                        GL11.glColor4f(1f, 1f, 1f, 1f)
+                        renderer.renderTexture(
+                            tex,
+                            getActualPos(pos),
+                            getActualSize(Vec2f.ONE),
+                            initColor = Vec4f.WHITE
+                        )
+                    }
 
                 }
 
@@ -292,7 +320,14 @@ object SceneMain : IScene {
 
     }
 
-    fun canEntityGoto(position: GamePos, d: Direction): Boolean {
+    fun canEntityGoto(entity: EntityObject, d: Direction): Boolean {
+
+        val position = entity.pos
+
+        if(entities.childs.filterIsInstance<EntityObject>().count {
+                it != entity && it.intersects(entity.pos.toVec2f() + d.component.toVec2f() / GamePos.BITS_FOR_SUBPIXEL.toFloat(), entity.size)
+            } != 0)
+            return false
 
         when(d) {
             Direction.NORTH, Direction.SOUTH -> {
@@ -314,7 +349,7 @@ object SceneMain : IScene {
             else -> position.pixel.toVec2i() + d.component
         }
 
-        if(p0.x < 0 || p0.y < 0 || p0.x >= map.size.x || p0.y >= map.size.y || map[p0.x, p0.y] in barrierTiles)
+        if(p0.x < 0 || p0.y < 0 || p0.x >= map.size.x || p0.y >= map.size.y || map[0, p0.x, p0.y] in barrierTiles)
             return false
 
         val p1 = p0 + when {
@@ -323,14 +358,14 @@ object SceneMain : IScene {
             else -> return true
         }
 
-        if(map[p1.x, p1.y] in barrierTiles)
+        if(map[0, p1.x, p1.y] in barrierTiles)
             return false
 
         return true
 
     }
 
-    fun canPlayerGoto(d: Direction) = canEntityGoto(player.pos, d)
+    fun canPlayerGoto(d: Direction) = canEntityGoto(player, d)
 
     fun talk(serif: Serif): Boolean {
 

@@ -1,14 +1,17 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.RpgUtt
+import crpth.rpgutt.entity.ai.EntityParams
 import crpth.rpgutt.entity.ai.IEntityAI
+import crpth.rpgutt.entity.ai.UpdateType
 import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.script.lib.Serif
 import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPerson("arrow", Vec2i(16, 16), pos, size, direction, "null") {
+class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPerson("pipo-charachip_otaku01", Vec2i(32, 32), pos, size, direction, "null") {
 
     companion object {
 
@@ -29,8 +32,17 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
         speed = 16
     }
 
-    override val ai: IEntityAI
-        get() = throw Exception()
+    override val ai: IEntityAI = object : IEntityAI {
+
+        override val updateType = UpdateType.ALWAYS
+
+        override fun getSerif(params: EntityParams) = Serif.EMPTY
+
+        override fun update(params: EntityParams) = Unit
+
+        override fun init(params: EntityParams) = Unit
+
+    }
 
     private fun getEntityToTalkWith(sceneMain: SceneMain) = sceneMain.entities.childs.firstOrNull {
         it !== this && it is IEntityTalkable && it is EntityObject &&
@@ -75,32 +87,41 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
         run y_side@ {
             if (flagW || flagS) {
-                direction = if(flagW) Direction.NORTH else Direction.SOUTH
-                val dist = if(flagW) GamePos.sub(0, 1) else GamePos.sub(0, -1)
+                direction = if (flagW) Direction.NORTH else Direction.SOUTH
+                val dist = if (flagW) GamePos.sub(0, 1) else GamePos.sub(0, -1)
 
-                var i = amount
-                while(i != 0) {
+                repeat(amount) {
 
-                    if(!SceneMain.canPlayerGoto(direction))
-                        return@y_side
+                    if (!SceneMain.canPlayerGoto(direction)) {
+
+                        val maybeMovable = SceneMain.entities.childs.filterIsInstance<EntityObject>().filter {
+                            it != this && it.intersects(
+                                this.pos.toVec2f() + direction.component.toVec2f() / GamePos.BITS_FOR_SUBPIXEL.toFloat(),
+                                this.size
+                            )
+                        }
+
+                        if (maybeMovable.isNotEmpty() && maybeMovable.all {
+                                it is EntityMovable && sceneMain.canEntityGoto(
+                                    it,
+                                    direction
+                                )
+                            }) {
+
+                            maybeMovable.forEach {
+                                it.pos += GamePos.sub(direction.component.x, direction.component.y)
+                            }
+
+                        } else {
+
+                            return@y_side
+
+                        }
+
+                    }
 
                     pos += dist
-                    --i
                 }
-
-//            if(SceneMain.canPlayerGoto(direction))
-//                pos = pos + dist
-//            else for(i in 1..cap) {
-//                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
-//                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
-//                    break
-//                }
-//                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
-//                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
-//                    break
-//                }
-//            }
-
             }
         }
 
@@ -109,54 +130,33 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
                 direction = if(flagA) Direction.WEST else Direction.EAST
                 val dist = if(flagD) GamePos.sub(1, 0) else GamePos.sub(-1, 0)
 
-                var i = amount
-                while(i != 0) {
+                repeat(amount) {
 
-                    if(!SceneMain.canPlayerGoto(direction))
-                        return IEntity.Feedback.CONTINUE
+                    if(!SceneMain.canPlayerGoto(direction)) {
+
+                        val maybeMovable = SceneMain.entities.childs.filterIsInstance<EntityObject>().filter {
+                            it != this && it.intersects(this.pos.toVec2f() + direction.component.toVec2f() / GamePos.BITS_FOR_SUBPIXEL.toFloat(), this.size)
+                        }
+
+                        if(maybeMovable.isNotEmpty() && maybeMovable.all { it is EntityMovable && sceneMain.canEntityGoto(it, direction) }) {
+
+                            maybeMovable.forEach {
+                                it.pos += GamePos.sub(direction.component.x, direction.component.y)
+                            }
+
+                        } else {
+
+                            return@x_side
+
+                        }
+
+                    }
 
                     pos += dist
-                    --i
                 }
-
-//            if(SceneMain.canPlayerGoto(direction))
-//                pos = pos + dist
-//            else for(i in 1..cap) {
-//                if(SceneMain.canEntityGoto(pos.plus(i, 0), direction)) {
-//                    pos = if(i <= strictCap) dist.plus(i, 0) else pos.plus(1, 0)
-//                    break
-//                }
-//                else if(SceneMain.canEntityGoto(pos.minus(i, 0), direction)) {
-//                    pos = if(i <= strictCap) dist.minus(i, 0) else pos.minus(1, 0)
-//                    break
-//                }
-//            }
 
             }
         }
-
-//        if (flagA || flagD) {
-//            direction = if(flagD) Direction.EAST else Direction.WEST
-//            val dist = if(flagD) pos.plus(amount, 0) else pos.plus(-amount, 0)
-//
-//            if(SceneMain.canPlayerGoto(direction))
-//                pos = dist
-//            else {
-//
-//                for(i in 1..cap) {
-//                    if(SceneMain.canEntityGoto(pos.plus(0, i), direction)) {
-//                        pos = if(i <= strictCap) dist.plus(0, i) else pos.plus(0, 1)
-//                        break
-//                    }
-//                    else if(SceneMain.canEntityGoto(pos.minus(0, i), direction)) {
-//                        pos = if(i <= strictCap) dist.minus(0, i) else pos.minus(0, 1)
-//                        break
-//                    }
-//                }
-//
-//            }
-//
-//        }
 
         return IEntity.Feedback.CONTINUE
     }

@@ -5,6 +5,9 @@ import crpth.util.vec.Vec2f
 
 abstract class EntityObject(open var pos: GamePos, open var size: Vec2f) : EntityWithRendering() {
 
+    override val posZ: Int
+        get() = pos.z
+
     fun intersects(p: Vec2f, s: Vec2f): Boolean {
 
         val p0 = pos.toVec2f()
@@ -19,9 +22,9 @@ abstract class EntityObject(open var pos: GamePos, open var size: Vec2f) : Entit
 
     }
 
-    infix fun intersects(target: EntityObject): Boolean {
+    fun intersects(target: EntityObject, considerZ: Boolean = false): Boolean {
 
-        if(pos.z != target.pos.z)
+        if(considerZ && pos.z != target.pos.z)
             return false
 
         return intersects(target.pos.toVec2f(), target.size)

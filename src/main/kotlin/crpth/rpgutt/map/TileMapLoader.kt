@@ -37,11 +37,14 @@ object TileMapLoader {
         }
 
         val size = Vec2s.readFrom(stream)
+        val amount = size.x * size.y
 
-        val amount = (size.x * size.y)
+        val layerCount = stream.readByte()
 
-        val tiles = UShortArray(amount) {
-            stream.readShort().toUShort()
+        val tiles = Array(layerCount.toInt()) {
+            UShortArray(amount) {
+                stream.readShort().toUShort()
+            }
         }
 
         val numFactory = stream.readShort()
