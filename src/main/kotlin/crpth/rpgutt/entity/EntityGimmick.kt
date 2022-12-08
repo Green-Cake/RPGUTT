@@ -8,7 +8,7 @@ import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-abstract class EntityGimmick(val texture: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f) : EntityObject(pos.withZ(-1), size) {
+abstract class EntityGimmick(val texture: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f) : EntityObject(pos, size) {
 
     val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$texture.png", sizePerTile)
 
@@ -21,7 +21,7 @@ abstract class EntityGimmick(val texture: String, val sizePerTile: Vec2i, pos: G
 
         stream.writeString(texture)
         stream.writeLong(sizePerTile.data.toLong())
-        pos.data.encode(stream)
+        pos.encode(stream)
         stream.writeLong(size.data.toLong())
 
     }

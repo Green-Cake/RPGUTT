@@ -25,7 +25,7 @@ class EntityGimmickPressureButton(pos: GamePos, size: Vec2f, val targetID: Int) 
     }
 
     override fun encode(stream: DataOutputStream) {
-        pos.data.encode(stream)
+        pos.encode(stream)
         stream.writeLong(size.data.toLong())
         stream.writeInt(targetID)
     }

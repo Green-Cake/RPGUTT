@@ -12,10 +12,6 @@ data class Vec2d(override val x: Double, override val y: Double) : IVec2n<Double
 
     }
 
-    override fun setAsVertex() {
-        GL11.glVertex2d(x, y)
-    }
-
     operator fun plus(other: Vec2d) = Vec2d(x + other.x, y + other.y)
 
     operator fun minus(other: Vec2d) = Vec2d(x - other.x, y - other.y)

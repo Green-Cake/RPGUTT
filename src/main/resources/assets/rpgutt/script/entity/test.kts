@@ -1,7 +1,11 @@
 import crpth.rpgutt.entity.Direction
 import crpth.rpgutt.entity.ai.EntityParams
+import crpth.rpgutt.entity.ai.IEntityAI
+import crpth.rpgutt.entity.ai.UpdateType
+import crpth.rpgutt.script.lib.*
 import crpth.util.vec.Vec2i
 import kotlin.math.abs
+import kotlin.random.Random
 
 object : IEntityAI {
     
@@ -23,7 +27,7 @@ object : IEntityAI {
 
         if(!params.isTalking && params.self.motion == Vec2i.ZERO) {
 
-            val a = params.player.pos.raw2i - params.self.pos.raw2i
+            val a = params.player.pos - params.self.pos
 
             if(abs(a.x) > abs(a.y)) {
 

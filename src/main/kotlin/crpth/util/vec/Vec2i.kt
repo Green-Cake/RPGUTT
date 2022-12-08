@@ -20,10 +20,6 @@ value class Vec2i(val data: ULong) : IVec2n<Int> {
 
     constructor(x: Int, y: Int) : this((x.resizeToULong() shl 32) + y.resizeToULong())
 
-    override fun setAsVertex() {
-        GL11.glVertex2i(x, y)
-    }
-
     operator fun plus(other: Vec2i) = Vec2i(x + other.x, y + other.y)
 
     operator fun minus(other: Vec2i) = Vec2i(x - other.x, y - other.y)

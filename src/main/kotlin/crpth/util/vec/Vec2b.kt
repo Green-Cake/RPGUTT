@@ -23,10 +23,6 @@ value class Vec2b(val data: UShort) : IVec2n<Byte> {
 
     constructor(x: Int, y: Int) : this(x.toByte(), y.toByte())
 
-    override fun setAsVertex() {
-        GL11.glVertex2i(x.resizeToInt(), y.resizeToInt())
-    }
-
     operator fun plus(other: Vec2b) = Vec2b(x + other.x, y + other.y)
 
     operator fun minus(other: Vec2b) = Vec2b(x - other.x, y - other.y)

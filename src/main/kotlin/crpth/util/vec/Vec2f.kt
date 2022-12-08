@@ -18,10 +18,6 @@ value class Vec2f(val data: ULong) : IVec2n<Float> {
 
     override val y get() = Float.fromBits(data.toInt())
 
-    override fun setAsVertex() {
-        GL11.glVertex2f(x, y)
-    }
-
     operator fun plus(other: Vec2f) = Vec2f(x + other.x, y + other.y)
 
     operator fun minus(other: Vec2f) = Vec2f(x - other.x, y - other.y)

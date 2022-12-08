@@ -163,9 +163,8 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
 
     override fun encode(stream: DataOutputStream) {
 
-        stream.writeInt(pos.data.x)
-        stream.writeInt(pos.data.y)
-        stream.writeInt(pos.data.z)
+        stream.writeInt(pos.x)
+        stream.writeInt(pos.y)
         stream.writeLong(size.data.toLong())
         stream.writeByte(direction.ordinal)
 

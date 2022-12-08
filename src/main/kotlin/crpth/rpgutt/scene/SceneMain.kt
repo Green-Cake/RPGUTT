@@ -154,7 +154,7 @@ object SceneMain : IScene {
 
             if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_L)) {
 
-                entities.requestAddEntity(EntityMovable("rock", Vec2i(16, 16), player.pos.plus(GamePos(2, 2)), Vec2f.ONE))
+                entities.requestAddEntity(EntityMovable("rock", Vec2i(16, 16), player.pos.plus(GamePos.tile(2, 2)), Vec2f.ONE))
 //                entities.requestAddEntity(EntityGimmick("rock", Vec2i(16, 16), player.pos.plus(GamePos(2, 2)), Vec2f(1f, 1f)))
 
             }
@@ -203,7 +203,7 @@ object SceneMain : IScene {
 
             if(parameters[RENDER_TILES] != 0u) {
 
-                val p = player.pos.pixel
+                val p = player.pos.posInTiles
 
                 val numX = ceil(1.0/scale / 3 * 4).toInt()
 
@@ -221,7 +221,7 @@ object SceneMain : IScene {
                         continue
                     }
 
-                    val pos = GamePos(x, y)
+                    val pos = GamePos.tile(x, y)
 
                     for (layer in 0 until map.layerCount){
 
@@ -332,29 +332,29 @@ object SceneMain : IScene {
         when(d) {
             Direction.NORTH, Direction.SOUTH -> {
 
-                if(position.subpixel.y != 0)
+                if(position.subpos.y != 0)
                     return true
 
             }
             Direction.EAST, Direction.WEST -> {
 
-                if(position.subpixel.x != 0)
+                if(position.subpos.x != 0)
                     return true
 
             }
         }
 
         val p0 = when(d) {
-            Direction.NORTH, Direction.EAST -> position.pixel + d.component
-            else -> position.pixel.toVec2i() + d.component
+            Direction.NORTH, Direction.EAST -> position.posInTiles + d.component
+            else -> position.posInTiles.toVec2i() + d.component
         }
 
         if(p0.x < 0 || p0.y < 0 || p0.x >= map.size.x || p0.y >= map.size.y || map[0, p0.x, p0.y] in barrierTiles)
             return false
 
         val p1 = p0 + when {
-            (d == Direction.NORTH || d == Direction.SOUTH) && position.subpixel.x != 0 -> Direction.EAST.component
-            (d == Direction.WEST || d == Direction.EAST) && position.subpixel.y != 0 -> Direction.NORTH.component
+            (d == Direction.NORTH || d == Direction.SOUTH) && position.subpos.x != 0 -> Direction.EAST.component
+            (d == Direction.WEST || d == Direction.EAST) && position.subpos.y != 0 -> Direction.NORTH.component
             else -> return true
         }
 

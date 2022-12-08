@@ -6,6 +6,7 @@ import crpth.rpgutt.entity.EntityPerson
 import crpth.rpgutt.entity.ai.EntityParams
 import crpth.rpgutt.entity.ai.IEntityAI
 import java.io.File
+import java.lang.Exception
 import kotlin.script.experimental.host.StringScriptSource
 
 object AIManager {
@@ -27,8 +28,10 @@ object AIManager {
             } else {
                 ScriptEvaluator.compile(StringScriptSource(ResourceManager.loadScriptSrc(scriptSrcPath)))
             }
-        } catch (t: Throwable) {
-            throw NoSuchFileException(File(ClassLoader.getSystemResource("assets/rpgutt/script/$scriptSrcPath.kts").toURI()))
+        } catch (t: NoSuchFileException) {
+            throw t
+        } catch (e: Throwable) {
+            throw Exception("Failed to load script file! maybe there are some illegal statements in program.")
         }
 
         val ai = ScriptEvaluator.eval<Any?>(script) as IEntityAI

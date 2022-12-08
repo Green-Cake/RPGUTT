@@ -8,6 +8,4 @@ interface IVec2nWrapper<T : Number> : IVec2n<T> {
 
     override val y: T get() = value.y
 
-    override fun setAsVertex() = value.setAsVertex()
-
 }
