@@ -57,7 +57,7 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
         if(!sceneMain.playerCanMove)
             return IEntity.Feedback.CONTINUE
 
-        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
+        if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
 
             val target = getEntityToTalkWith(SceneMain) as IEntityTalkable?
 
@@ -70,16 +70,16 @@ class EntityPlayer(pos: GamePos, size: Vec2f, direction: Direction) : EntityPers
             return IEntity.Feedback.CONTINUE
         }
 
-        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_P)) {
+        if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_P)) {
 
             sceneMain.entities.requestAddEntity(EntityPerson("arrow", Vec2i(16, 16), pos, Vec2f(1f, 1f), Direction.SOUTH, "entity/test"))
 
         }
 
-        val flagW = RpgUtt.isKeyDown(GLFW.GLFW_KEY_W)
-        val flagA = RpgUtt.isKeyDown(GLFW.GLFW_KEY_A)
-        val flagS = RpgUtt.isKeyDown(GLFW.GLFW_KEY_S)
-        val flagD = RpgUtt.isKeyDown(GLFW.GLFW_KEY_D)
+        val flagW = RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_W)
+        val flagA = RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_A)
+        val flagS = RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_S)
+        val flagD = RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_D)
 
         val amount = if((flagW || flagS) && (flagA || flagD)) 11 else 16
         val cap = 112

@@ -10,7 +10,9 @@ value class Window(val id: Long) {
 
     companion object {
 
-        fun create(width: Int, height: Int, title: CharSequence, monitor: Long = NULL, share: Long = NULL) = Window(GLFW.glfwCreateWindow(width, height, title, monitor, share))
+        val NULL_W = Window(NULL)
+
+        fun create(width: Int, height: Int, title: CharSequence, monitor: Long = NULL, share: Window = NULL_W) = Window(GLFW.glfwCreateWindow(width, height, title, monitor, share.id))
 
     }
 

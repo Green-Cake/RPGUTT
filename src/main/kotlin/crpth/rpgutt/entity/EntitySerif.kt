@@ -42,7 +42,7 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, over
 
         }
 
-        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
+        if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
 
             if(duration == atom.duration) {
 
@@ -73,7 +73,7 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, over
             return
 
         glColor4f(0.0f, 0.0f, 0.0f, 0.2f)
-        renderer.drawScreen()
+        renderer.drawSquare(Vec2f(-1f, -1f), Vec2f(2f, 2f))
 
         val atom = serif.atoms[cursor]
         var length = ((atom.textLines.sumOf { it.length } - 1)*(duration.toFloat()/atom.duration.toFloat())).roundToInt()

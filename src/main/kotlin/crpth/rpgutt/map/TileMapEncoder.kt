@@ -4,7 +4,7 @@ import crpth.util.vec.Vec2b
 import java.nio.ByteBuffer
 
 @ExperimentalUnsignedTypes
-object TileMapGenerator {
+object TileMapEncoder {
 
     val PREFIX = Vec2b(0xAB, 0xEF)
     val POSTFIX = Vec2b(0xEF, 0xAB)
@@ -15,9 +15,9 @@ object TileMapGenerator {
      *
      * @param stream a stream to get the map binary data.
      */
-    fun generate(map: TileMap): ByteArray {
+    fun encode(map: TileMap): ByteArray {
 
-        val buffer = ByteBuffer.allocate(11 + map.size.x*map.size.y*2 + map.entityFactories.sumOf { it.meta.size + 4 })
+        val buffer = ByteBuffer.allocate(11 + map.size.x*map.size.y*2*map.layerCount + map.entityFactories.sumOf { it.meta.size + 4 })
         buffer.putShort(PREFIX.data.toShort())
 
         buffer.putInt(map.size.data.toInt())

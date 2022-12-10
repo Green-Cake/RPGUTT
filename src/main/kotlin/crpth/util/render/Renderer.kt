@@ -2,7 +2,6 @@ package crpth.util.render
 
 import crpth.util.render.font.FontManager
 import crpth.util.render.font.TextureCharacters
-import crpth.util.type.BoundingBox
 import crpth.util.vec.*
 import org.lwjgl.opengl.GL11.*
 import java.awt.Font
@@ -34,7 +33,10 @@ class Renderer {
         glVertex2f(position.x + size.x, position.y + size.y)
     }
 
-    fun drawScreen() = drawSquare(Vec2f(-1f, -1f), Vec2f(2f, 2f))
+    fun clearScreen(clearColor: Vec4f = Vec4f.BLACK) {
+        glClearColor(clearColor.d, clearColor.c, clearColor.c, clearColor.d)
+        glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
+    }
 
     fun renderLineStrip(vararg positions: Vec2d) {
 
@@ -46,10 +48,10 @@ class Renderer {
 
     }
 
-    fun renderTexture(texture: ITexture, position: Vec2d, size: Vec2d, srcStart: Vec2d = Vec2d.ZERO, srcEnd: Vec2d = Vec2d.ONE, initColor: Vec4f?=null) {
+    fun renderTexture(texture: ITexture, position: Vec2d, size: Vec2d, srcStart: Vec2d = Vec2d.ZERO, srcEnd: Vec2d = Vec2d.ONE, initColor: Vec4f?=Vec4f.WHITE) {
 
         if(initColor != null)
-            glColor4f(initColor.r, initColor.g, initColor.b, initColor.a)
+            glColor4f(initColor.a, initColor.b, initColor.c, initColor.d)
 
         texture.bind()
 

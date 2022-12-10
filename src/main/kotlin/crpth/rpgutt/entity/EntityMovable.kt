@@ -21,7 +21,6 @@ class EntityMovable(val texture: String, val sizePerTile: Vec2i, pos: GamePos, s
     val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$texture.png", sizePerTile)
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
-        GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
         renderer.renderTexture(textures[0], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
     }
 

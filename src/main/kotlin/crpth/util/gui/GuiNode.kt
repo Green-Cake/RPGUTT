@@ -1,5 +1,6 @@
 package crpth.util.gui
 
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -11,7 +12,7 @@ abstract class GuiNode(val z: Int, val pos: Vec2f, val size: Vec2f): Comparable<
 
     abstract fun render(renderer: Renderer)
 
-    abstract fun onClicked(button: MouseButton, action: MouseAction): Boolean
+    abstract fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean
 
     override fun compareTo(other: GuiNode) = z.compareTo(other.z)
 

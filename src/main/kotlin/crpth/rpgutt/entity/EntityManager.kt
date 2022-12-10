@@ -30,7 +30,7 @@ object EntityManager {
         register(0u, EntityOrderedList::class, EntityOrderedList::decode)
         register(1u, EntityParallel::class, EntityParallel::decode)
         register(10u, EntityWait::class, EntityWait::decode)
-        register(11u, EntitySceneConfig::class, EntitySceneConfig::decode)
+        register(11u, EntityMapConfig::class, EntityMapConfig::decode)
 
         register(20u, EntityTextLine::class, EntityTextLine::decode)
 

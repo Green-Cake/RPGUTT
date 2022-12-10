@@ -1,6 +1,7 @@
 package crpth.rpgutt.scene
 
 import crpth.rpgutt.RpgUtt
+import crpth.util.RichWindow
 import crpth.util.gui.Gui
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
@@ -68,7 +69,7 @@ class SceneTitle : SceneParent() {
             fadeToPlay = Double.NaN
         }
 
-        override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+        override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
             return false
         }
 
@@ -91,19 +92,19 @@ class SceneTitle : SceneParent() {
 
             }
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
                 GLFW.glfwSetWindowShouldClose(RpgUtt.window.id, true)
             }
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_UP)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_UP)) {
                 --select
             }
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
                 ++select
             }
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ENTER) || RpgUtt.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ENTER) || RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_RIGHT)) {
 
                 play(if(select == 0) "enter1" else "enter3", volume = 0.2)
 
@@ -152,7 +153,7 @@ class SceneTitle : SceneParent() {
             else
                 GL11.glColor3d(0.375 + Random.nextDouble()/4.0, 0.375 + Random.nextDouble()/4.0, 0.375 + Random.nextDouble()/4.0)
 
-            renderer.renderTexture(titleLogo, Vec2d(-0.9, 0.0), Vec2d(1.8, 0.9))
+            renderer.renderTexture(titleLogo, Vec2d(-0.9, 0.0), Vec2d(1.8, 0.9), initColor = null)
 
             s0(renderer, 0) {
                 renderer.renderStringCentered("PLAY", renderer.fontManager.fontMonospaced, Vec2d(0.0, -0.25), 0.13)
@@ -213,7 +214,7 @@ class SceneTitle : SceneParent() {
             else
                 rotate = 0f
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
                 rotate = 45.0f
                 root.changeSub(0, false)
             }
@@ -230,7 +231,7 @@ class SceneTitle : SceneParent() {
 
         }
 
-        override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+        override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
             return false
         }
 
@@ -257,7 +258,7 @@ class SceneTitle : SceneParent() {
             else
                 rotate = 0f
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
                 rotate = 45.0f
                 root.changeSub(0, false)
             }
@@ -278,8 +279,8 @@ class SceneTitle : SceneParent() {
 
         }
 
-        override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
-            return gui.onClicked(button, action)
+        override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
+            return gui.onClicked(window, button, action)
         }
 
     }
@@ -303,7 +304,7 @@ class SceneTitle : SceneParent() {
             else
                 rotate = 0f
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
                 rotate = 45.0f
                 root.changeSub(0, false)
             }
@@ -345,7 +346,7 @@ class SceneTitle : SceneParent() {
 
         }
 
-        override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+        override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
             return false
         }
 
@@ -370,7 +371,7 @@ class SceneTitle : SceneParent() {
             else
                 rotate = 0f
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_ESCAPE)) {
                 rotate = 45.0f
                 root.changeSub(0, false)
             }
@@ -391,7 +392,7 @@ class SceneTitle : SceneParent() {
 
         }
 
-        override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+        override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
             return false
         }
 

@@ -7,12 +7,12 @@ import java.io.DataOutputStream
  * @param data x: uint y: uint
  */
 @JvmInline
-value class GamePos(override val value: Vec2i) : IVec2nWrapper<Int> {
+value class GamePos(val value: Vec2i) : IVec2n<Int> by value {
 
     companion object {
 
         const val BITS_FOR_SUBPIXEL = 8
-        private const val PIXEL_AREA = (0b1 shl BITS_FOR_SUBPIXEL)
+        const val PIXEL_AREA = (0b1 shl BITS_FOR_SUBPIXEL)
 
         val ZERO = GamePos(Vec2i.ZERO)
 
@@ -21,8 +21,12 @@ value class GamePos(override val value: Vec2i) : IVec2nWrapper<Int> {
         fun tile(x: Int, y: Int) = GamePos(x, y)
 
         fun sub(sx: Int, sy: Int) = GamePos(sx / PIXEL_AREA, sy / PIXEL_AREA,
-            (sx % PIXEL_AREA).toByte(), (sy % PIXEL_AREA).toByte()
+            sx % PIXEL_AREA, sy % PIXEL_AREA
         )
+
+        fun fromVec2d(v: Vec2d) = sub((v.x * PIXEL_AREA).toInt(), (v.y * PIXEL_AREA).toInt())
+
+        fun fromVec2i(v: Vec2i) = GamePos(v)
 
     }
 
@@ -30,7 +34,7 @@ value class GamePos(override val value: Vec2i) : IVec2nWrapper<Int> {
 
     val subpos get() = Vec2i(x % PIXEL_AREA, y % PIXEL_AREA)
 
-    private constructor(x: Int, y: Int, sx: Byte=0, sy: Byte=0) : this(
+    private constructor(x: Int, y: Int, sx: Int=0, sy: Int=0) : this(
         Vec2i((x shl BITS_FOR_SUBPIXEL) + sx, (y shl BITS_FOR_SUBPIXEL) + sy)
     )
 

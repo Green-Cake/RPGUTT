@@ -20,6 +20,8 @@ value class Vec2i(val data: ULong) : IVec2n<Int> {
 
     constructor(x: Int, y: Int) : this((x.resizeToULong() shl 32) + y.resizeToULong())
 
+    override fun coerceIn(xRange: ClosedRange<Int>, yRange: ClosedRange<Int>) = Vec2i(x.coerceIn(xRange), y.coerceIn(yRange))
+
     operator fun plus(other: Vec2i) = Vec2i(x + other.x, y + other.y)
 
     operator fun minus(other: Vec2i) = Vec2i(x - other.x, y - other.y)

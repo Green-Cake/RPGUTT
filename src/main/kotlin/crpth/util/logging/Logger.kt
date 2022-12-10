@@ -35,7 +35,7 @@ class Logger(val clazz: KClass<*>, val out: PrintStream=System.out, val err: Pri
             return false
 
         val timestamp = getTimestamp()
-        (if(level.isError) err else out).printf("[$timestamp $s] $level: $msg${System.lineSeparator()}", *args)
+        (if(level.isError) err else out).printf("[$timestamp $s | $level] $msg${System.lineSeparator()}", *args)
 
         return true
 

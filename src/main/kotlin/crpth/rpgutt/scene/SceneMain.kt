@@ -5,14 +5,15 @@ import crpth.rpgutt.RpgUtt
 import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
 import crpth.rpgutt.map.TileMapLoader
-import crpth.rpgutt.scene.SceneMain.Parameter.*
+import crpth.rpgutt.scene.MapParameter.*
 import crpth.rpgutt.script.lib.Serif
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.type.BoundingBox
-import crpth.util.vec
+import crpth.util.vec.vec
 import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
@@ -23,23 +24,23 @@ import kotlin.math.ceil
 
 object SceneMain : IScene {
 
-    var rotation = Vec3f(0.0f, 0.0f, 0.0f)
+    private var rotation = Vec3f(0.0f, 0.0f, 0.0f)
 
-    val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/BrightForest-A2.png", Vec2i(32, 32))
+    private val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/BrightForest-A2.png", Vec2i(32, 32))
 
-    val barrierTiles = setOf<UShort>(
+    private val barrierTiles = setOf<UShort>(
 //        0u, 1u, 2u
     )
 
-    lateinit var map: TileMap
+    private lateinit var map: TileMap
 
-    lateinit var entitiesPre: EntityParallel
+    private lateinit var entitiesPre: EntityParallel
 
-    lateinit var entities: EntityParallel
+    internal lateinit var entities: EntityParallel
 
-    val zoomValues = listOf(0.05, 0.08, 0.1, 0.12)
+    private val zoomValues = listOf(0.05, 0.08, 0.1, 0.12)
 
-    var scale = zoomValues[1]
+    private var scale = zoomValues[1]
 
     val renderingBound: BoundingBox get() {
 
@@ -50,35 +51,35 @@ object SceneMain : IScene {
 
     }
 
-    private val parameters = values().associateWithTo(EnumMap(Parameter::class.java)) {
+    private val parameters = values().associateWithTo(EnumMap(MapParameter::class.java)) {
 
         when(it) {
-            RENDER_TILES -> Parameter.TRUE
-            RENDER_ENTITIES -> Parameter.TRUE
+            RENDER_TILES -> MapParameter.TRUE
+            RENDER_ENTITIES -> MapParameter.TRUE
             TILE_ID_VOID -> 0u
         }
 
     }
 
-    var statusPre = IEntity.Feedback.CONTINUE
+    private var statusPre = IEntity.Feedback.CONTINUE
 
     var isTalking = false
 
-    var currentSerifEntity: EntitySerif? = null
+    private var currentSerifEntity: EntitySerif? = null
 
     val player: EntityPlayer get() = entities.childs.filterIsInstance<EntityPlayer>().first()
 
     val playerCanMove get() = !isTalking
 
-    var isZooming = false
-    var zoomTarget = 0.0
-    var zoomSpeed = 0.002
+    private var isZooming = false
+    private var zoomTarget = 0.0
+    private var zoomSpeed = 0.002
 
-    fun setParam(p: Parameter, value: UInt) {
+    fun setParam(p: MapParameter, value: UInt) {
         parameters[p] = value
     }
 
-    fun getParam(p: Parameter) = parameters.getOrDefault(p, 0u)
+    fun getParam(p: MapParameter) = parameters.getOrDefault(p, 0u)
 
     fun loadNewMap(name: String) {
 
@@ -121,9 +122,9 @@ object SceneMain : IScene {
         if(!isLoadingFinished)
             return
 
-        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_UP)) {
+        if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_UP)) {
             startZoom(zoomValues[(zoomValues.indexOf(zoomValues.minBy { abs(scale - it) })+1).coerceIn(0..zoomValues.lastIndex)])
-        } else if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
+        } else if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_DOWN)) {
             startZoom(zoomValues[(zoomValues.indexOf(zoomValues.minBy { abs(scale - it) })-1).coerceIn(0..zoomValues.lastIndex)])
         }
 
@@ -152,7 +153,7 @@ object SceneMain : IScene {
 
         if(DEBUG_MODE) {
 
-            if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_L)) {
+            if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_L)) {
 
                 entities.requestAddEntity(EntityMovable("rock", Vec2i(16, 16), player.pos.plus(GamePos.tile(2, 2)), Vec2f.ONE))
 //                entities.requestAddEntity(EntityGimmick("rock", Vec2i(16, 16), player.pos.plus(GamePos(2, 2)), Vec2f(1f, 1f)))
@@ -181,7 +182,7 @@ object SceneMain : IScene {
         if(!isLoadingFinished) {
 
             GL11.glColor3f(0f, 0f, 0f)
-            renderer.drawScreen()
+            renderer.clearScreen()
             GL11.glColor3f(1f, 1f, 1f)
             renderer.renderStringCentered("Now Loading...", renderer.fontEn, Vec2d(0.0, 0.0), 0.2)
             return
@@ -213,10 +214,13 @@ object SceneMain : IScene {
 
                     if(x < 0 || y < 0 || x >= map.size.x || y >= map.size.y) {
 
+                        val tileIDVoid = parameters[TILE_ID_VOID]?.toInt() ?: 0
+
                         val pos = getActualPos(Vec2i(x, y))
-                        val tex = tileSet[parameters[TILE_ID_VOID]?.toInt() ?: 0]
+                        val tex = if(tileIDVoid == 0) null else tileSet[tileIDVoid-1]
                         GL11.glColor4f(1f, 1f, 1f, 1f)
-                        renderer.renderTexture(tex, pos, getActualSize(Vec2f.ONE), initColor=Vec4f.WHITE)
+                        if(tex != null)
+                            renderer.renderTexture(tex, pos, getActualSize(Vec2f.ONE))
 
                         continue
                     }
@@ -230,7 +234,7 @@ object SceneMain : IScene {
                         if(tileID == 0)
                             continue
 
-                        val tex = tileSet[tileID+1]
+                        val tex = tileSet[tileID-1]
                         GL11.glColor4f(1f, 1f, 1f, 1f)
                         renderer.renderTexture(
                             tex,
@@ -278,7 +282,7 @@ object SceneMain : IScene {
 
     }
 
-    override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+    override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
 
         return false
     }
@@ -389,19 +393,6 @@ object SceneMain : IScene {
             currentSerifEntity = null
             isTalking = false
 
-        }
-
-    }
-
-    enum class Parameter {
-        RENDER_TILES,
-        RENDER_ENTITIES,
-        TILE_ID_VOID
-        ;
-
-        companion object {
-            const val TRUE = 1u
-            const val FALSE = 0u
         }
 
     }

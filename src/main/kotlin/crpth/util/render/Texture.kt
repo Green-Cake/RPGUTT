@@ -3,6 +3,7 @@ package crpth.util.render
 import crpth.rpgutt.ResourceManager
 import crpth.util.vec.Vec2i
 import org.lwjgl.opengl.GL11.*
+import org.lwjgl.stb.STBImage
 import java.awt.image.BufferedImage
 import java.io.File
 import java.nio.ByteBuffer
@@ -30,12 +31,16 @@ value class Texture(override val id: Int) : ITexture {
         }
 
         fun load(img: BufferedImage): Texture {
+
+            val buffer = ResourceManager.loadTextureImageBufAndSize(img).first
+
             val id = glGenTextures()
             glBindTexture(GL_TEXTURE_2D, id)
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, ResourceManager.loadTextureImageBufAndSize(img).first)
+            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, img.width, img.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, buffer)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST)
             glBindTexture(GL_TEXTURE_2D, 0)
+
             return Texture(id)
         }
 

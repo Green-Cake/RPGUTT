@@ -14,7 +14,7 @@ object ScriptEvaluator {
                 wholeClasspath = true
             )
         }
-        defaultImports("crpth.rpgutt.script.lib.*", "crpth.util.vec.*", "kotlin.random.*", "crpth.rpgutt.entity.ai.*")
+        defaultImports("crpth.rpgutt.script.lib.*", "crpth.util.vec.vec.*", "kotlin.random.*", "crpth.rpgutt.entity.ai.*")
     }
 
     val host = BasicJvmScriptingHost()

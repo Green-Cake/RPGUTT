@@ -1,5 +1,6 @@
 package crpth.util.gui
 
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -16,9 +17,9 @@ class Gui {
         nodes.forEach { it.render(renderer) }
     }
 
-    fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+    fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
         nodes.forEach {
-            if(it.onClicked(button, action))
+            if(it.onClicked(window, button, action))
                 return true
         }
         return false

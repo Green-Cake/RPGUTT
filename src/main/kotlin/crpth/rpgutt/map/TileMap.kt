@@ -8,5 +8,8 @@ class TileMap(val name: String, val size: Vec2s, val tiles: Array<UShortArray>, 
 
     operator fun get(layer: Int, x: Int, y: Int) = tiles[layer][y * size.x + x]
 
+    operator fun set(layer: Int, x: Int, y: Int, value: UShort) {
+        tiles[layer][y * size.x + x] = value
+    }
 
 }

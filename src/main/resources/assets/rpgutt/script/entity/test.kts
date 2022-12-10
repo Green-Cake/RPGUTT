@@ -39,7 +39,7 @@ object : IEntityAI {
 
             }
 
-            params.self.move(amount = Random.nextInt(10)*256)
+            params.self.move(amount = 256)
         }
 
     }

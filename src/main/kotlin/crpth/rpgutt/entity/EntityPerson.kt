@@ -121,7 +121,6 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
         tick = (tick+1) % 60
 
-        GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
         renderer.renderTexture(textures[direction.ordinal*3 + (tick/15).let { if(it == 3) 1 else it }], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
 
     }

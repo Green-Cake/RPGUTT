@@ -14,7 +14,7 @@ abstract class EntityGimmick(val texture: String, val sizePerTile: Vec2i, pos: G
 
     override fun render(sceneMain: SceneMain, renderer: Renderer) {
         GL11.glColor4d(1.0, 1.0, 1.0, 1.0)
-        renderer.renderTexture(textures[0], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
+        renderer.renderTexture(textures[0], sceneMain.getActualPos(pos), sceneMain.getActualSize(size), initColor = Vec4f.WHITE)
     }
 
     override fun encode(stream: DataOutputStream) {
