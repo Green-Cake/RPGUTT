@@ -1,5 +1,7 @@
 package crpth.rpgutt.entity
 
+import crpth.rpgutt.scene.MapParameter
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.vec.Vec2b
 import crpth.util.vec.readFrom
@@ -7,19 +9,19 @@ import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntitySceneConfig(val param: SceneMain.Parameter, val value: UInt) : EntityScript() {
+class EntityMapConfig(val param: MapParameter, val value: UInt) : EntityScript() {
 
     companion object {
 
-        fun decode(stream: DataInputStream): EntitySceneConfig {
-            val param = SceneMain.Parameter.values()[Vec2b.readFrom(stream).data.toShort().resizeToInt()]
+        fun decode(stream: DataInputStream): EntityMapConfig {
+            val param = MapParameter.values()[Vec2b.readFrom(stream).data.toShort().resizeToInt()]
             val value = stream.readInt().toUInt()
-            return EntitySceneConfig(param, value)
+            return EntityMapConfig(param, value)
         }
 
     }
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         SceneMain.setParam(param, value)
 
@@ -30,7 +32,5 @@ class EntitySceneConfig(val param: SceneMain.Parameter, val value: UInt) : Entit
         stream.writeShort(param.ordinal)
         stream.writeInt(value.toInt())
     }
-
-    override fun computeEncodedBinarySize() = 6
 
 }

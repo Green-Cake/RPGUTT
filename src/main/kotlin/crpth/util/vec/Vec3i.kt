@@ -1,5 +1,7 @@
 package crpth.util.vec
 
+import java.io.DataOutputStream
+
 data class Vec3i(val x: Int, val y: Int, val z: Int) {
 
     companion object {
@@ -8,6 +10,8 @@ data class Vec3i(val x: Int, val y: Int, val z: Int) {
         val ONE = Vec3i(1, 1, 1)
 
     }
+
+    inline fun map(transform: (Int)->Int) = Vec3i(transform(x), transform(y), transform(z))
 
     operator fun plus(other: Vec3i) = Vec3i(x + other.x, y + other.y, z + other.z)
 
@@ -28,5 +32,11 @@ data class Vec3i(val x: Int, val y: Int, val z: Int) {
     operator fun times(other: Int) = Vec3i(x * other, y * other, z * other)
 
     operator fun div(other: Int) = Vec3i(x / other, y / other, z / other)
+
+    fun encode(stream: DataOutputStream) {
+        stream.writeInt(x)
+        stream.writeInt(y)
+        stream.writeInt(z)
+    }
 
 }

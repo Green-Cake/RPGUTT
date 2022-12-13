@@ -6,9 +6,9 @@ import kotlin.reflect.KClass
 
 object EntityManager {
 
-    private val entities = mutableMapOf<UShort, KClass<out IEntity>>()
+    internal val entities = mutableMapOf<UShort, KClass<out IEntity>>()
 
-    private val entityDecoders = mutableMapOf<UShort, (DataInputStream)->IEntity>()
+    internal val entityDecoders = mutableMapOf<UShort, (DataInputStream)->IEntity>()
 
     fun getID(clazz: KClass<out IEntity>) = entities.keys.firstOrNull { entities[it] == clazz }
 
@@ -30,12 +30,14 @@ object EntityManager {
         register(0u, EntityOrderedList::class, EntityOrderedList::decode)
         register(1u, EntityParallel::class, EntityParallel::decode)
         register(10u, EntityWait::class, EntityWait::decode)
-        register(11u, EntitySceneConfig::class, EntitySceneConfig::decode)
+        register(11u, EntityMapConfig::class, EntityMapConfig::decode)
 
         register(20u, EntityTextLine::class, EntityTextLine::decode)
 
         register(30u, EntityPerson::class, EntityPerson::decode)
         register(100u, EntityPlayer::class, EntityPlayer::decode)
+
+        register(1000u, EntityMovable::class, EntityMovable::decode)
 
     }
 

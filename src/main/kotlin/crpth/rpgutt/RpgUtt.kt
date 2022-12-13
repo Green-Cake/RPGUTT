@@ -1,8 +1,10 @@
 package crpth.rpgutt
 
+import crpth.mapbuilder.scene.SceneMapBuilder
 import crpth.rpgutt.scene.IScene
 import crpth.rpgutt.scene.SceneTitle
 import crpth.rpgutt.scene.SceneVoid
+import crpth.util.RichWindow
 import crpth.util.Window
 import crpth.util.logging.Logger
 import crpth.util.mouse.MouseAction
@@ -33,15 +35,19 @@ object RpgUtt {
     val soundManager = SoundManager()
 
     var scene: IScene = SceneVoid
+        private set
 
-    var cursorPos = Vec2f.ZERO
+    val richWindow: RichWindow by lazy {
+        RichWindow(window) { button, action ->
+            scene.onClicked(richWindow, button, action)
+        }
+    }
 
     fun changeScene(another: IScene) {
 
         scene.reset()
 
-        keyMapPrev.clear()
-        keyMap.clear()
+        richWindow.resetInput()
 
         scene = another
 
@@ -57,7 +63,25 @@ object RpgUtt {
             logger.info("Program [RPG-UTT] started")
 
             logger.config("Initialization started")
-            init()
+            init(SceneTitle())
+            logger.config("Main Loop started")
+            loop()
+        } catch (e: Throwable) {
+            e.printStackTrace()
+        } finally {
+            finish()
+        }
+
+    }
+
+    fun runMapBuilder() {
+
+        logger.info("Thread: ${Thread.currentThread().name}")
+        logger.info("This is map builder!")
+
+        try {
+            logger.config("Initialization started")
+            init(SceneMapBuilder)
             logger.config("Main Loop started")
             loop()
         } catch (e: Throwable) {
@@ -84,7 +108,7 @@ object RpgUtt {
 
     }
 
-    private fun init() {
+    private fun init(scene: IScene?) {
 
         logger.info("LWJGL Version: ${Version.getVersion()}")
 
@@ -108,39 +132,23 @@ object RpgUtt {
             throw RuntimeException("Failed to create GLFW window...")
         }
 
-        glfwSetKeyCallback(window.id, ::onKeyEvent)
-
-        glfwSetCursorPosCallback(window.id) { w, x, y ->
-            cursorPos = Vec2f(x.toFloat()/windowSize.x, 1.0f - y.toFloat()/windowSize.y)*2.0f - Vec2f.ONE
-        }
-
-        glfwSetMouseButtonCallback(window.id) { w, button, action, mods, ->
-            scene.onClicked(MouseButton.from(button), MouseAction.from(action))
-        }
+        richWindow.init()
 
         window.makeContextCurrent()
         glfwSwapInterval(1)
 
-        changeScene(SceneTitle())
+        GL.createCapabilities()
 
-        val cx = DoubleArray(1)
-        val cy = DoubleArray(1)
-        glfwGetCursorPos(window.id, cx, cy)
-        cursorPos = Vec2f(cx[0].toFloat()/windowSize.x, 1.0f - cy[0].toFloat()/windowSize.y)*2f - Vec2f.ONE
+        glEnable(GL_TEXTURE_2D)
+        glEnable(GL_CULL_FACE)
+        glEnable(GL_BLEND)
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+        glCullFace(GL_BACK)
+
+        if(scene != null)
+            changeScene(scene)
 
         window.show()
-
-    }
-
-    val keyMapPrev = mutableSetOf<Int>()
-    val keyMap = mutableSetOf<Int>()
-
-    fun onKeyEvent(window: Long, key: Int, scancode: Int, action: Int, mods: Int) {
-
-        if(action == GLFW_RELEASE)
-            keyMap.remove(key)
-        else
-            keyMap += key
 
     }
 
@@ -170,43 +178,25 @@ object RpgUtt {
 
     private fun update() {
 
+        window.makeContextCurrent()
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
         scene.update()
 
-        keyMapPrev.clear()
-        keyMapPrev.addAll(keyMap)
+        richWindow.update()
 
     }
 
     private fun render() {
+
+        window.makeContextCurrent()
 
         glClearColor(0f, 0f, 0f, 0f)
         glClear(GL_COLOR_BUFFER_BIT or GL_DEPTH_BUFFER_BIT)
 
         scene.render(renderer)
 
-    }
-
-    fun isKeyPressed(key: Int): Boolean {
-        return key !in keyMapPrev && key in keyMap
-    }
-
-    fun isKeyRepeated(key: Int): Boolean {
-        return key in keyMapPrev && key in keyMap
-    }
-
-    fun isKeyDown(key: Int): Boolean {
-        return key in keyMap
-    }
-
-    fun isKeyGetReleased(key: Int): Boolean {
-        return key in keyMapPrev && key !in keyMap
-    }
-
-    fun isKeyReleased(key: Int): Boolean {
-        return key !in keyMap
     }
 
 }

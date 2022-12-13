@@ -1,11 +1,13 @@
 package crpth.util.render.font
 
 import crpth.util.render.Texture
+import org.lwjgl.stb.STBEasyFont
 import java.awt.Color
 import java.awt.Font
 import java.awt.font.FontRenderContext
 import java.awt.geom.AffineTransform
 import java.awt.image.BufferedImage
+import java.nio.ByteBuffer
 
 object FontLoader {
 

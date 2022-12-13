@@ -21,9 +21,7 @@ value class Vec2s(val data: UInt) : IVec2n<Short> {
 
     constructor(x: Int, y: Int) : this(x.toShort(), y.toShort())
 
-    override fun setAsVertex() {
-        GL11.glVertex2s(x, y)
-    }
+    override fun coerceIn(xRange: ClosedRange<Short>, yRange: ClosedRange<Short>) = Vec2s(x.coerceIn(xRange), y.coerceIn(yRange))
 
     operator fun plus(other: Vec2s) = Vec2s(x + other.x, y + other.y)
 

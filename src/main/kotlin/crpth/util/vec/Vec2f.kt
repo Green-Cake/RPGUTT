@@ -14,13 +14,11 @@ value class Vec2f(val data: ULong) : IVec2n<Float> {
 
     constructor(x: Float, y: Float) : this((x.toRawBits().resizeToULong() shl 32) + (y).toRawBits().resizeToULong())
 
+    override fun coerceIn(xRange: ClosedRange<Float>, yRange: ClosedRange<Float>) = Vec2f(x.coerceIn(xRange), y.coerceIn(yRange))
+
     override val x get() = Float.fromBits((data shr 32).toInt())
 
     override val y get() = Float.fromBits(data.toInt())
-
-    override fun setAsVertex() {
-        GL11.glVertex2f(x, y)
-    }
 
     operator fun plus(other: Vec2f) = Vec2f(x + other.x, y + other.y)
 

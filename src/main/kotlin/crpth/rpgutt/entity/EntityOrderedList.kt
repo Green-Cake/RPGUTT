@@ -1,13 +1,15 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.map.EntityFactory
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.render.Renderer
+import crpth.util.type.BoundingBox
 import crpth.util.vec.resizeToInt
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering() {
+class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int=0) : EntityWithRendering() {
+
     companion object {
 
         fun decode(stream: DataInputStream): EntityOrderedList {
@@ -47,9 +49,7 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
 
     }
 
-    override fun computeEncodedBinarySize() = entities.sumOf { it.computeEncodedBinarySize() + 4 } + 2
-
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         if(entities.isEmpty())
             return IEntity.Feedback.FINISH
@@ -57,7 +57,7 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
         if(cursor > entities.lastIndex)
             return IEntity.Feedback.FINISH
 
-        val feedback = entities[cursor].update(sceneMain)
+        val feedback = entities[cursor].update(sceneStage)
 
         if(feedback == IEntity.Feedback.FINISH) {
 
@@ -72,7 +72,7 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
 
     }
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         if(cursor > entities.lastIndex)
             return
@@ -80,4 +80,6 @@ class EntityOrderedList(val entities: Array<out IEntity>) : EntityWithRendering(
         (entities[cursor] as? EntityWithRendering)?.render(sceneMain, renderer)
 
     }
+
+    override fun isRenderingTarget(sceneMain: ISceneStage, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
 }

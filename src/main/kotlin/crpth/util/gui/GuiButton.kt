@@ -1,6 +1,7 @@
 package crpth.util.gui
 
 import crpth.rpgutt.RpgUtt
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -19,9 +20,9 @@ class GuiButton(z: Int, pos: Vec2f, size: Vec2f) : GuiNode(z, pos, size) {
 
     }
 
-    override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+    override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
 
-        val cursor = RpgUtt.cursorPos
+        val cursor = window.cursorPos
 
         if(cursor !in bb)
             return false

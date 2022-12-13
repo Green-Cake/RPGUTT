@@ -1,5 +1,6 @@
 package crpth.rpgutt.scene
 
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -14,6 +15,6 @@ object SceneVoid : IScene {
 
     override fun reset() = Unit
 
-    override fun onClicked(button: MouseButton, action: MouseAction) = false
+    override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction) = false
 
 }

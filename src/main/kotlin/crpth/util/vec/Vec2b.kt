@@ -17,15 +17,13 @@ value class Vec2b(val data: UShort) : IVec2n<Byte> {
     override val y: Byte
         get() = data.toByte()
 
+    override fun coerceIn(xRange: ClosedRange<Byte>, yRange: ClosedRange<Byte>) = Vec2b(x.coerceIn(xRange), y.coerceIn(yRange))
+
     constructor(x: Byte, y: Byte) : this(
         (((x.toUInt() and 0xFFu) shl 8) + (y.toUInt() and 0xFFu)).toUShort()
     )
 
     constructor(x: Int, y: Int) : this(x.toByte(), y.toByte())
-
-    override fun setAsVertex() {
-        GL11.glVertex2i(x.resizeToInt(), y.resizeToInt())
-    }
 
     operator fun plus(other: Vec2b) = Vec2b(x + other.x, y + other.y)
 

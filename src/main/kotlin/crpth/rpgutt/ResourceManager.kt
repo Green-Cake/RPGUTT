@@ -98,9 +98,9 @@ object ResourceManager {
             while (fc.read(buffer) != -1);
         }
         buffer.flip()
-        return MemoryUtil.memSlice(buffer)
+        return buffer.slice()
     }
 
-    fun loadScriptSrc(path: String) = String(ClassLoader.getSystemResourceAsStream("assets/rpgutt/script/$path.kts").readBytes())
+    fun loadScriptSrc(path: String) = String(ClassLoader.getSystemResourceAsStream("assets/rpgutt/script/$path.kts")!!.readBytes())
 
 }

@@ -1,6 +1,7 @@
 package crpth.rpgutt.scene
 
 import crpth.rpgutt.RpgUtt
+import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
@@ -40,9 +41,9 @@ abstract class SceneParent : IScene {
             subScenes[currentSub]?.reset()
     }
 
-    override fun onClicked(button: MouseButton, action: MouseAction): Boolean {
+    override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
 
-        return subScenes[currentSub]?.onClicked(button, action) == true
+        return subScenes[currentSub]?.onClicked(window, button, action) == true
 
     }
 

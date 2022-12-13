@@ -18,8 +18,6 @@ class FontManager(fontsizeToLoad: Int) {
 
     fun init() {
 
-        fontMonospaced.size
-
         if(isInitialized)
             return
 

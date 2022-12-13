@@ -4,7 +4,7 @@ import crpth.rpgutt.ResourceManager
 import crpth.util.vec.Vec2i
 import org.lwjgl.opengl.GL11
 
-class TileSet(val path: String, val sizePerTile: Vec2i) {
+class TileSet(path: String, val sizePerTile: Vec2i) {
 
     companion object {
         fun createLazyInit(path: String, sizePerTile: Vec2i): Lazy<TileSet> = lazy {

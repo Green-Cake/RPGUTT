@@ -1,6 +1,6 @@
 package crpth.rpgutt.entity
 
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.render.Renderer
 import crpth.util.vec.Vec2f
 import crpth.util.vec.Vec4b
@@ -10,7 +10,9 @@ import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val color: Vec4b, val duration: Float, val fadeIn: Float, val fadeOut: Float) : EntityWithRendering() {
+class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val color: Vec4b, val duration: Float, val fadeIn: Float, val fadeOut: Float,
+                     override val posZ: Int=10
+) : EntityWithRendering() {
 
     companion object {
 
@@ -49,9 +51,7 @@ class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val col
         stream.writeFloat(fadeOut)//4
     }
 
-    override fun computeEncodedBinarySize() = str.toByteArray().size + 32
-
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         d += 1.0f/60
 
@@ -65,7 +65,7 @@ class EntityTextLine(val str: String, val pos: Vec2f, val height: Float, val col
 
     }
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         val r = color.r.resizeToInt()
         val g = color.g.resizeToInt()

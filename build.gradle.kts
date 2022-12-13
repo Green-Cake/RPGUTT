@@ -15,7 +15,8 @@ repositories {
 }
 
 val lwjglVersion = "3.3.1"
-val lwjglNatives = "natives-macos"
+
+val lwjglNatives = if("mac" in osdetector.os) "natives-macos" else "natives-windows"
 
 repositories {
     mavenCentral()

@@ -1,10 +1,11 @@
 package crpth.rpgutt.map
 
 import crpth.util.vec.Vec2b
+import java.io.DataOutputStream
 import java.nio.ByteBuffer
 
 @ExperimentalUnsignedTypes
-object TileMapGenerator {
+object TileMapEncoder {
 
     val PREFIX = Vec2b(0xAB, 0xEF)
     val POSTFIX = Vec2b(0xEF, 0xAB)
@@ -15,15 +16,25 @@ object TileMapGenerator {
      *
      * @param stream a stream to get the map binary data.
      */
-    fun generate(map: TileMap): ByteArray {
+    fun encode(map: TileMap): ByteArray {
 
-        val buffer = ByteBuffer.allocate(10 + map.size.x*map.size.y*2 + map.entityFactories.sumOf { it.meta.size + 4 })
+        val buffer = ByteBuffer.allocate(12 + map.tileSets.sumOf { it.toByteArray().size + 2 } + map.size.x*map.size.y*2*map.layerCount + map.entityFactories.sumOf { it.meta.size + 4 })
+
         buffer.putShort(PREFIX.data.toShort())
 
         buffer.putInt(map.size.data.toInt())
 
-        for(i in 0 until map.size.x*map.size.y) {
-            buffer.putShort(map.tiles[i].toShort())
+        buffer.put(map.tileSets.size.toByte())
+
+        map.tileSets.forEach {
+            buffer.putShort(it.length.toShort())
+            buffer.put(it.toByteArray())
+        }
+
+        buffer.put(map.layerCount.toByte())
+
+        for(l in 0 until map.layerCount) for(i in 0 until map.size.x*map.size.y) {
+            buffer.putShort(map.tiles[l][i].toShort())
         }
 
         buffer.putShort(map.entityFactories.size.toShort())

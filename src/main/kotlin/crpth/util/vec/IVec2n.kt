@@ -1,6 +1,6 @@
 package crpth.util.vec
 
-interface IVec2n<T : Number> {
+interface IVec2n<T> where T : Number, T : Comparable<T>{
 
     val x: T
     val y: T
@@ -15,6 +15,6 @@ interface IVec2n<T : Number> {
 
     fun toVec2d() = Vec2d(x.toDouble(), y.toDouble())
 
-    fun setAsVertex()
+    fun coerceIn(xRange: ClosedRange<T>, yRange: ClosedRange<T> = xRange): IVec2n<T>
 
 }

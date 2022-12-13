@@ -1,7 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.RpgUtt
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.script.lib.Serif
 import crpth.util.render.Renderer
 import crpth.util.vec.Vec2d
@@ -11,11 +11,11 @@ import org.lwjgl.opengl.GL11.glColor4f
 import java.io.DataOutputStream
 import kotlin.math.roundToInt
 
-class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : EntityWithRendering(), Unencodable {
+class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, override val posZ: Int=-10) : EntityWithRendering(), Unencodable {
 
     var shouldFinish = false
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         if(shouldFinish || serif.atoms.isEmpty())
             return IEntity.Feedback.FINISH
@@ -42,7 +42,7 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : En
 
         }
 
-        if(RpgUtt.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
+        if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_SPACE)) {
 
             if(duration == atom.duration) {
 
@@ -67,13 +67,13 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : En
 
     val fontHeight = 0.1
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         if(shouldFinish)
             return
 
         glColor4f(0.0f, 0.0f, 0.0f, 0.2f)
-        renderer.drawScreen()
+        renderer.drawSquare(Vec2f(-1f, -1f), Vec2f(2f, 2f))
 
         val atom = serif.atoms[cursor]
         var length = ((atom.textLines.sumOf { it.length } - 1)*(duration.toFloat()/atom.duration.toFloat())).roundToInt()
@@ -105,7 +105,5 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0) : En
 
     //undefined
     override fun encode(stream: DataOutputStream) {}
-
-    override fun computeEncodedBinarySize() = 0
 
 }
