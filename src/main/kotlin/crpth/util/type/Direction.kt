@@ -1,4 +1,4 @@
-package crpth.rpgutt.entity
+package crpth.util.type
 
 import crpth.util.vec.Vec2i
 

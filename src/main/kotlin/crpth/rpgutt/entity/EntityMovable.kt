@@ -1,10 +1,9 @@
 package crpth.rpgutt.entity
 
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.vec.*
-import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
@@ -20,11 +19,11 @@ class EntityMovable(val texture: String, val sizePerTile: Vec2i, pos: GamePos, s
 
     val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$texture.png", sizePerTile)
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
         renderer.renderTexture(textures[0], sceneMain.getActualPos(pos), sceneMain.getActualSize(size))
     }
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
         return IEntity.Feedback.CONTINUE
     }
 

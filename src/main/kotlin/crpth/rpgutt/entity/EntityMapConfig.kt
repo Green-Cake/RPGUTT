@@ -1,6 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.scene.MapParameter
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.scene.SceneMain
 import crpth.util.vec.Vec2b
 import crpth.util.vec.readFrom
@@ -20,7 +21,7 @@ class EntityMapConfig(val param: MapParameter, val value: UInt) : EntityScript()
 
     }
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         SceneMain.setParam(param, value)
 
@@ -31,7 +32,5 @@ class EntityMapConfig(val param: MapParameter, val value: UInt) : EntityScript()
         stream.writeShort(param.ordinal)
         stream.writeInt(value.toInt())
     }
-
-    override fun computeEncodedBinarySize() = 6
 
 }

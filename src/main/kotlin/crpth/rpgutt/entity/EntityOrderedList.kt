@@ -1,7 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.map.EntityFactory
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.render.Renderer
 import crpth.util.type.BoundingBox
 import crpth.util.vec.resizeToInt
@@ -49,9 +49,7 @@ class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int
 
     }
 
-    override fun computeEncodedBinarySize() = entities.sumOf { it.computeEncodedBinarySize() + 4 } + 2
-
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         if(entities.isEmpty())
             return IEntity.Feedback.FINISH
@@ -59,7 +57,7 @@ class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int
         if(cursor > entities.lastIndex)
             return IEntity.Feedback.FINISH
 
-        val feedback = entities[cursor].update(sceneMain)
+        val feedback = entities[cursor].update(sceneStage)
 
         if(feedback == IEntity.Feedback.FINISH) {
 
@@ -74,7 +72,7 @@ class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int
 
     }
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         if(cursor > entities.lastIndex)
             return
@@ -83,5 +81,5 @@ class EntityOrderedList(val entities: Array<out IEntity>, override val posZ: Int
 
     }
 
-    override fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
+    override fun isRenderingTarget(sceneMain: ISceneStage, renderer: Renderer, bound: BoundingBox) = cursor <= entities.lastIndex
 }

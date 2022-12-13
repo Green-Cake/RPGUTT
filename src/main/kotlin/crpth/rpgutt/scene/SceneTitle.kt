@@ -44,7 +44,7 @@ class SceneTitle : SceneParent() {
         loadSound("enter2", "se/enter2.wav", false)
         loadSound("enter3", "se/enter3.wav", false)
 
-        setVolume("fantasy09", 0.1)
+        setVolume("fantasy09", 0.01)
 
         play("fantasy09")
 

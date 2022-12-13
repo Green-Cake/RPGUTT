@@ -1,6 +1,6 @@
 package crpth.rpgutt.entity
 
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.entity.ai.EntityParams
 import crpth.rpgutt.entity.ai.UpdateType.*
 import crpth.rpgutt.script.AIManager
@@ -8,12 +8,12 @@ import crpth.rpgutt.script.lib.Serif
 import crpth.util.render.Renderer
 import crpth.util.render.TileSet
 import crpth.util.type.BoundingBox
+import crpth.util.type.Direction
 import crpth.util.vec.*
-import org.lwjgl.opengl.GL11
 import java.io.DataInputStream
 import java.io.DataOutputStream
 
-open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
+open class EntityPerson(val textureName: String, val sizePerTile: Vec2i, pos: GamePos, size: Vec2f, var direction: Direction, val scriptSrcPath: String) : EntityObject(pos, size), IEntityTalkable {
 
     companion object {
 
@@ -41,19 +41,19 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
     var motion = Vec2i.ZERO
     var speed = 1
 
-    val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$name.png", sizePerTile)
+    val textures by TileSet.createLazyInit("assets/rpgutt/textures/entity/$textureName.png", sizePerTile)
 
     fun resetMotion() {
         motion = Vec2i.ZERO
     }
 
-    fun move(d: Direction=direction, amount: Int=1) {
+    fun move(d: Direction =direction, amount: Int=1) {
         motion += d.component*amount
     }
 
     private var isInitialized = false
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         val doUpdate = when(ai.updateType) {
             ALWAYS -> {
@@ -73,18 +73,18 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
             isInitialized = true
         }
 
-        if(motionCounter == 0 && !sceneMain.isTalking) {
+        if(motionCounter == 0 && !sceneStage.isTalking) {
 
             if(motion.x > 0) {
                 motion -= Vec2i(speed, 0)
                 repeat(speed) {
-                    if(sceneMain.canEntityGoto(this, Direction.EAST))
+                    if(sceneStage.canEntityGoto(this, Direction.EAST))
                         pos = pos.plus(1, 0)
                 }
             } else if(motion.x < 0) {
                 motion += Vec2i(speed, 0)
                 repeat(speed) {
-                    if(sceneMain.canEntityGoto(this, Direction.WEST))
+                    if(sceneStage.canEntityGoto(this, Direction.WEST))
                         pos = pos.minus(1, 0)
                 }
             }
@@ -92,20 +92,20 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
             if(motion.y > 0) {
                 motion -= Vec2i(0, speed)
                 repeat(speed) {
-                    if(sceneMain.canEntityGoto(this, Direction.NORTH))
+                    if(sceneStage.canEntityGoto(this, Direction.NORTH))
                         pos = pos.plus(0, 1)
                 }
             } else if(motion.y < 0) {
                 motion += Vec2i(0, speed)
                 repeat(speed) {
-                    if(sceneMain.canEntityGoto(this, Direction.SOUTH))
+                    if(sceneStage.canEntityGoto(this, Direction.SOUTH))
                         pos = pos.minus(0, 1)
                 }
             }
 
         }
 
-        if(!sceneMain.isTalking)
+        if(!sceneStage.isTalking)
             ai.update(EntityParams(this@EntityPerson))
 
         return IEntity.Feedback.CONTINUE
@@ -113,7 +113,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     var tick = 0
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
 //        if(!isRenderingTarget(sceneMain, renderer, sceneMain.renderingBound))
 //            return
@@ -125,7 +125,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     }
 
-    override fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox): Boolean {
+    override fun isRenderingTarget(sceneMain: ISceneStage, renderer: Renderer, bound: BoundingBox): Boolean {
 
         val margin = Vec2f(3.0f, 3.0f)
 
@@ -142,7 +142,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     override fun encode(stream: DataOutputStream) {
 
-        stream.writeString(name)
+        stream.writeString(textureName)
         stream.writeLong(sizePerTile.data.toLong())
         pos.encode(stream)
         stream.writeLong(size.data.toLong())
@@ -151,7 +151,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     }
 
-    override fun getSerif(sceneMain: SceneMain): Serif? {
+    override fun getSerif(sceneMain: ISceneStage): Serif? {
 
         return ai.getSerif(EntityParams(this@EntityPerson))
 
@@ -159,7 +159,7 @@ open class EntityPerson(val name: String, val sizePerTile: Vec2i, pos: GamePos, 
 
     }
 
-    override fun isTalkable(sceneMain: SceneMain, player: EntityPlayer) = this !is EntityPlayer
+    override fun isTalkable(sceneMain: ISceneStage, player: EntityPlayer) = this !is EntityPlayer
 
     fun turnRight() {
         direction = Direction.values()[(direction.ordinal + 1) % Direction.values().size]

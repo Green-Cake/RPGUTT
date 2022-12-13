@@ -1,11 +1,10 @@
-import crpth.rpgutt.entity.Direction
+import crpth.util.type.Direction
 import crpth.rpgutt.entity.ai.EntityParams
 import crpth.rpgutt.entity.ai.IEntityAI
 import crpth.rpgutt.entity.ai.UpdateType
 import crpth.rpgutt.script.lib.*
 import crpth.util.vec.Vec2i
 import kotlin.math.abs
-import kotlin.random.Random
 
 object : IEntityAI {
     

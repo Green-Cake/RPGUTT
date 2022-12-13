@@ -1,7 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.RpgUtt
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.script.lib.Serif
 import crpth.util.render.Renderer
 import crpth.util.vec.Vec2d
@@ -15,7 +15,7 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, over
 
     var shouldFinish = false
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         if(shouldFinish || serif.atoms.isEmpty())
             return IEntity.Feedback.FINISH
@@ -67,7 +67,7 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, over
 
     val fontHeight = 0.1
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         if(shouldFinish)
             return
@@ -105,7 +105,5 @@ class EntitySerif(val serif: Serif, var cursor: Int=0, var duration: Int=0, over
 
     //undefined
     override fun encode(stream: DataOutputStream) {}
-
-    override fun computeEncodedBinarySize() = 0
 
 }

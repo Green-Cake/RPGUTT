@@ -4,6 +4,7 @@ import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
 import crpth.rpgutt.map.TileMapEncoder
 import crpth.rpgutt.scene.MapParameter
+import crpth.util.type.Direction
 import crpth.util.vec.*
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -46,6 +47,8 @@ fun newMap() {
     val name = readln()
     val width = requestInt("width")
     val height = requestInt("height")
+    print("Enumerate tilesets' name, separating by commas: ")
+    val tileSets = readln().split(',').map { it.trim() }
     val tileIdVoid = requestInt("tileID for Void")
     val tileIdToFill = requestInt("tileID to fill")
     val layerCount = requestInt("How many layers?")
@@ -62,8 +65,8 @@ fun newMap() {
     }
 
     val factoryPre = entityParallel.createFactory()
-    val factoryPost = EntityParallel(emptyList()).createFactory()
-    val map = TileMap(name, vec(width, height).toVec2s(), tiles, listOf(factoryPre, factoryPost))
+    val factoryPost = EntityParallel(listOf(EntityPlayer(GamePos.ZERO, Vec2f.ONE, Direction.NORTH))).createFactory()
+    val map = TileMap(name, vec(width, height).toVec2s(), tileSets, tiles, listOf(factoryPre, factoryPost))
 
     val data = TileMapEncoder.encode(map)
 
@@ -86,7 +89,7 @@ fun newMap() {
 
     val zos = ZipOutputStream(os)
 
-    zos.putNextEntry(ZipEntry("main.txt"))
+    zos.putNextEntry(ZipEntry("main.bin"))
     zos.write(data)
 
     zos.close()
@@ -124,10 +127,10 @@ fun compile() {
 
     val post = parallel(
         EntityPlayer(GamePos.ZERO, Vec2f(1f, 1f), Direction.NORTH),
-        EntityPerson("pipo-charachip_soldier01", Vec2i(32, 32), GamePos.tile(7, 7), Vec2f(1f, 1f), Direction.SOUTH, "entity/test")
+        EntityPerson("soldier01", Vec2i(32, 32), GamePos.tile(7, 7), Vec2f(1f, 1f), Direction.SOUTH, "entity/test")
     )
 
-    val map = TileMap("temporary", Vec2s(100, 100), arrayOf(UShortArray(100*100) { if(Random.nextInt(16) == 0) 97u.toUShort() else 1u.toUShort() }), listOf(pre.createFactory(), post.createFactory()))
+    val map = TileMap("temporary", Vec2s(100, 100), listOf("BrightForest-A2"), arrayOf(UShortArray(100*100) { if(Random.nextInt(16) == 0) 97u.toUShort() else 1u.toUShort() }), listOf(pre.createFactory(), post.createFactory()))
 
     val path = Paths.get("./test.level")
 

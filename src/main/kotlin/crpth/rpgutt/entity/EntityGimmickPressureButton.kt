@@ -1,6 +1,6 @@
 package crpth.rpgutt.entity
 
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.vec.*
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -13,9 +13,9 @@ class EntityGimmickPressureButton(pos: GamePos, size: Vec2f, val targetID: Int) 
 
     }
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
-        if(sceneMain.entities.childs.filterIsInstance<EntityMovable>().count { this.intersects(it) } > 0) {
+        if(sceneStage.entities.childs.filterIsInstance<EntityMovable>().count { this.intersects(it) } > 0) {
 
 
 

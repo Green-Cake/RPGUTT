@@ -1,6 +1,7 @@
 package crpth.rpgutt.map
 
 import crpth.util.vec.Vec2b
+import java.io.DataOutputStream
 import java.nio.ByteBuffer
 
 @ExperimentalUnsignedTypes
@@ -17,10 +18,18 @@ object TileMapEncoder {
      */
     fun encode(map: TileMap): ByteArray {
 
-        val buffer = ByteBuffer.allocate(11 + map.size.x*map.size.y*2*map.layerCount + map.entityFactories.sumOf { it.meta.size + 4 })
+        val buffer = ByteBuffer.allocate(12 + map.tileSets.sumOf { it.toByteArray().size + 2 } + map.size.x*map.size.y*2*map.layerCount + map.entityFactories.sumOf { it.meta.size + 4 })
+
         buffer.putShort(PREFIX.data.toShort())
 
         buffer.putInt(map.size.data.toInt())
+
+        buffer.put(map.tileSets.size.toByte())
+
+        map.tileSets.forEach {
+            buffer.putShort(it.length.toShort())
+            buffer.put(it.toByteArray())
+        }
 
         buffer.put(map.layerCount.toByte())
 

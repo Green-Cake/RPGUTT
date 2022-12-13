@@ -31,7 +31,7 @@ inline fun Vec4b.Companion.readFrom(stream: DataInputStream) = Vec4b(stream.read
 inline fun DataInputStream.readString(): String {
 
     val length = readShort().resizeToInt()
-    return String(ByteArray(length) { readByte() })
+    return String(readNBytes(length))
 
 }
 

@@ -1,6 +1,7 @@
 package crpth.rpgutt.entity.ai
 
 import crpth.rpgutt.entity.EntityPerson
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.scene.SceneMain
 
 class EntityParams(val self: EntityPerson) {

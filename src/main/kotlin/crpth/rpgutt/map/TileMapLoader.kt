@@ -4,6 +4,7 @@ import crpth.rpgutt.RpgUtt
 import crpth.util.vec.Vec2b
 import crpth.util.vec.Vec2s
 import crpth.util.vec.readFrom
+import crpth.util.vec.readString
 import java.io.DataInputStream
 import java.io.InputStream
 import java.util.zip.ZipInputStream
@@ -39,6 +40,12 @@ object TileMapLoader {
         val size = Vec2s.readFrom(stream)
         val amount = size.x * size.y
 
+        val tileSetsCount = stream.readByte()
+
+        val tileSets = List(tileSetsCount.toInt()) {
+            stream.readString()
+        }
+
         val layerCount = stream.readByte()
 
         val tiles = Array(layerCount.toInt()) {
@@ -71,7 +78,7 @@ object TileMapLoader {
 
         }
 
-        return TileMap(name, size, tiles, factories)
+        return TileMap(name, size, tileSets, tiles, factories)
 
     }
 

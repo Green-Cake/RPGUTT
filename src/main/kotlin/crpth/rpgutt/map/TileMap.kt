@@ -2,7 +2,7 @@ package crpth.rpgutt.map
 
 import crpth.util.vec.Vec2s
 
-class TileMap(val name: String, val size: Vec2s, val tiles: Array<UShortArray>, val entityFactories: List<EntityFactory>) {
+class TileMap(val name: String, val size: Vec2s, val tileSets: List<String>, val tiles: Array<UShortArray>, val entityFactories: List<EntityFactory>) {
 
     val layerCount get() = tiles.size
 

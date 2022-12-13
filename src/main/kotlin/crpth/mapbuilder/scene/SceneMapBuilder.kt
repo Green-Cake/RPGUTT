@@ -2,43 +2,67 @@ package crpth.mapbuilder.scene
 
 import crpth.rpgutt.DEBUG_MODE
 import crpth.rpgutt.FALSE
+import crpth.rpgutt.ResourceManager
 import crpth.rpgutt.RpgUtt
-import crpth.rpgutt.TRUE
 import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
+import crpth.rpgutt.map.TileMapEncoder
 import crpth.rpgutt.map.TileMapLoader
+import crpth.rpgutt.obj.TileSetWithMeta
 import crpth.rpgutt.scene.IScene
+import crpth.rpgutt.scene.ISceneStage
 import crpth.rpgutt.scene.MapParameter
+import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.script.ScriptEvaluator
 import crpth.util.RichWindow
 import crpth.util.Window
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
+import crpth.util.render.Texture
 import crpth.util.render.TileSet
+import crpth.util.type.Direction
 import crpth.util.vec.vec
 import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
+import java.io.DataInputStream
+import java.io.EOFException
+import java.nio.file.Files
+import java.nio.file.Paths
 import java.util.*
+import java.util.zip.ZipEntry
+import java.util.zip.ZipOutputStream
 import kotlin.concurrent.thread
 import kotlin.math.abs
+import kotlin.math.absoluteValue
 import kotlin.math.ceil
+import kotlin.script.experimental.api.ReplEvaluator
+import kotlin.script.experimental.host.StringScriptSource
+import kotlin.script.experimental.jvm.BasicJvmReplEvaluator
 
-object SceneMapBuilder : IScene {
+object SceneMapBuilder : ISceneStage {
+
+    enum class TargetMode {
+        TILE,
+        ENTITY
+    }
+
+    private var targetMode = TargetMode.TILE
 
     private var rotation = Vec3f(0.0f, 0.0f, 0.0f)
 
-    private val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/BrightForest-A2.png", Vec2i(32, 32))
+    private var tileTextureIDs: IntArray = intArrayOf()
 
-    private val barrierTiles = setOf<UShort>(
-//        0u, 1u, 2u
-    )
+    private var barrierTiles: Set<UShort> = emptySet()
 
     private lateinit var map: TileMap
 
-    private lateinit var entitiesPre: EntityParallel
+    override lateinit var entitiesPre: EntityParallel
 
-    private lateinit var entities: EntityParallel
+    override lateinit var entities: EntityParallel
+
+    override val canPlayerMove = false
 
     private val zoomValues = listOf(0.05, 0.08, 0.1, 0.12)
 
@@ -65,9 +89,58 @@ object SceneMapBuilder : IScene {
     private var tileIDToPlace: UShort = 1u
     private var targetLayer: UInt = 0u
 
-    private var windowPallet: Window = Window.NULL_W
-    private val richWindowPallet by lazy {
-        RichWindow(windowPallet, ::palletOnClicked)
+    private var entityIDToPlace: UShort = 0u
+
+    private var windowPalette: Window = Window.NULL_W
+    private val richWindowPalette by lazy {
+        RichWindow(windowPalette, ::paletteOnClicked)
+    }
+
+    var isTileSetLoaded = false
+
+    val entityIcons = mutableMapOf<UShort, Texture>()
+
+    private var scrollPalette = 0
+
+    private val validEntityIDs get() = EntityManager.entities.keys.toUShortArray().sorted()
+
+    fun loadIcons() {
+
+        entityIcons.putAll(EntityManager.entities.mapValues {
+            val p = when(val name = it.value.simpleName) {
+                "EntityMovable" -> "entity/rock.png"
+                else -> "entity/icon/$name.png"
+            }
+            Texture.load(p)
+        })
+
+    }
+
+    fun loadTileSet(names: List<String>) {
+
+        val tileSets = names.map { name ->
+            val set = TileSet("assets/rpgutt/textures/tile/$name.png", Vec2i(32, 32))
+
+            val barriers = mutableSetOf<UShort>()
+
+            val input = DataInputStream(ClassLoader.getSystemResourceAsStream("assets/rpgutt/textures/tile/$name.meta") ?: return@map TileSetWithMeta(set, emptySet()))
+
+            try {
+                barriers += input.readUnsignedShort().toUShort()
+            } catch(e: EOFException) {
+                return@map TileSetWithMeta(set, barriers)
+            }
+
+            TileSetWithMeta(set, barriers)
+
+        }
+
+        val (textures, barriers) = TileSetWithMeta.integrate(tileSets)
+
+        tileTextureIDs = textures
+        barrierTiles = barriers
+
+
     }
 
     fun setParam(p: MapParameter, value: UInt) {
@@ -92,9 +165,9 @@ object SceneMapBuilder : IScene {
 
         RpgUtt.logger.info("SceneMapBuilder init start")
 
-        windowPallet = Window.create(400, 800, "Pallet", share = RpgUtt.window)
+        windowPalette = Window.create(400, 800, "Palette", share = RpgUtt.window)
 
-        windowPallet.makeContextCurrent()
+        windowPalette.makeContextCurrent()
 
         GLFW.glfwSwapInterval(1)
         GL11.glEnable(GL11.GL_TEXTURE_2D)
@@ -102,13 +175,13 @@ object SceneMapBuilder : IScene {
         GL11.glEnable(GL11.GL_BLEND)
         GL11.glBlendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA)
         GL11.glCullFace(GL11.GL_BACK)
-        GLFW.glfwSetWindowAttrib(windowPallet.id, GLFW.GLFW_RESIZABLE, FALSE)
+        GLFW.glfwSetWindowAttrib(windowPalette.id, GLFW.GLFW_RESIZABLE, FALSE)
 
         RpgUtt.window.makeContextCurrent()
 
-        windowPallet.show()
+        windowPalette.show()
 
-        richWindowPallet.init()
+        richWindowPalette.init()
 
         val t = thread {
             RpgUtt.logger.info("Map loading start")
@@ -123,6 +196,8 @@ object SceneMapBuilder : IScene {
 
         GL11.glViewport(0, 0, RpgUtt.windowSize.x, RpgUtt.windowSize.y)
 
+        loadIcons()
+
     }
 
     fun startZoom(value: Double) {
@@ -130,14 +205,39 @@ object SceneMapBuilder : IScene {
         zoomTarget = value
     }
 
-    var tileSelectCoolTime = 0
+    private var tileSelectCoolTime = 0
 
     override fun update() {
 
         if(!isLoadingFinished)
             return
 
-        richWindowPallet.update()
+        if(richWindowPalette.isKeyPressed(GLFW.GLFW_KEY_T)) {
+            scrollPalette = 0
+            targetMode = TargetMode.TILE
+        } else if(richWindowPalette.isKeyPressed(GLFW.GLFW_KEY_E)) {
+            scrollPalette = 0
+            targetMode = TargetMode.ENTITY
+        }
+
+        if(richWindowPalette.isKeyPressed(GLFW.GLFW_KEY_W)) {
+            scrollPalette--
+        } else if(richWindowPalette.isKeyPressed(GLFW.GLFW_KEY_S)) {
+            scrollPalette++
+        }
+
+        if(scrollPalette < 0)
+            scrollPalette = 0
+
+        richWindowPalette.update()
+
+        // ---
+
+        if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_LEFT_CONTROL) && RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_S)) {
+
+            save()
+
+        }
 
         if(RpgUtt.richWindow.isKeyPressed(GLFW.GLFW_KEY_UP)) {
             startZoom(zoomValues[(zoomValues.indexOf(zoomValues.minBy { abs(scale - it) })+1).coerceIn(0..zoomValues.lastIndex)])
@@ -189,26 +289,46 @@ object SceneMapBuilder : IScene {
         if(tileSelectCoolTime != 0)
             --tileSelectCoolTime
 
-        if(tileSelectCoolTime == 0 || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
-            if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_L)) {
-                ++tileIDToPlace
+        when(targetMode) {
+            TargetMode.TILE -> {
+                if(tileSelectCoolTime == 0 || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+                    if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_L)) {
+                        ++tileIDToPlace
 
-                if(tileIDToPlace > tileSet.length.toUInt())
-                    tileIDToPlace = 0u
+                        if(tileIDToPlace > tileTextureIDs.size.toUInt())
+                            tileIDToPlace = 0u
 
-                tileSelectCoolTime = 20
-            } else if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_J)) {
-                --tileIDToPlace
+                        tileSelectCoolTime = 20
+                    } else if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_J)) {
+                        --tileIDToPlace
 
-                if(tileIDToPlace > tileSet.length.toUInt())
-                    tileIDToPlace = tileSet.length.toUShort()
+                        if(tileIDToPlace > tileTextureIDs.size.toUInt())
+                            tileIDToPlace = tileTextureIDs.size.toUShort()
 
-                tileSelectCoolTime = 20
+                        tileSelectCoolTime = 20
+                    }
+                }
+            }
+            TargetMode.ENTITY -> {
+
+//                if(tileSelectCoolTime == 0 || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_LEFT_SHIFT)) {
+//                    if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_L)) {
+//                        ++entityIDToPlace
+//
+//                        tileSelectCoolTime = 20
+//                    } else if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_J)) {
+//                        --entityIDToPlace
+//
+//                        tileSelectCoolTime = 20
+//                    }
+//                }
+
             }
         }
+
     }
 
-    var RENDER_TILES = true
+    private var RENDER_TILES = true
 
     override fun render(renderer: Renderer) {
 
@@ -224,7 +344,14 @@ object SceneMapBuilder : IScene {
 
         }
 
-        renderPallet(renderer)
+        if(::map.isInitialized && !isTileSetLoaded) {
+
+            loadTileSet(map.tileSets)
+            isTileSetLoaded = true
+
+        }
+
+        renderPalette(renderer)
 
 ////        if(statusPre == IEntity.Feedback.CONTINUE) {
 //////            entitiesPre.render(this, renderer)
@@ -259,7 +386,7 @@ object SceneMapBuilder : IScene {
                     if(x < 0 || y < 0 || x >= map.size.x || y >= map.size.y) {
 
                         val pos = getActualPos(Vec2i(x, y))
-                        val tex = tileSet[0]
+                        val tex = Texture(tileTextureIDs[0])
                         renderer.renderTexture(tex, pos, getActualSize(Vec2f.ONE), initColor = Vec4f(0.5f, 0.5f, 0.5f))
 
                         continue
@@ -274,20 +401,33 @@ object SceneMapBuilder : IScene {
                         if(tileID == 0)
                             continue
 
-                        val tex = tileSet[tileID-1]
+                        val tex = Texture(tileTextureIDs[tileID-1])
                         GL11.glColor4f(1f, 1f, 1f, 1f)
                         renderer.renderTexture(
                             tex,
                             getActualPos(pos),
                             getActualSize(Vec2f.ONE)
                         )
+
+                        if(x % 10 == 0) {
+                            val ps = getActualPos(Vec2i(x, y))
+                            GL11.glColor3f(0f, 1f, 1f)
+                            renderer.renderLineStrip(ps, ps.copy(y = p.y + getActualSize(Vec2f.ONE).y))
+                        }
+
+                        if(y % 10 == 0) {
+                            val ps = getActualPos(Vec2i(x, y))
+                            GL11.glColor3f(1f, 1f, 0f)
+                            renderer.renderLineStrip(ps, ps.copy(x = p.x + getActualSize(Vec2f.ONE).y))
+                        }
+
                     }
 
                 }
 
             }
 
-//            entities.render(this, renderer)
+            entities.render(this, renderer)
 
         }
 
@@ -305,9 +445,9 @@ object SceneMapBuilder : IScene {
 
     }
 
-    private fun renderPallet(renderer: Renderer) {
+    private fun renderPalette(renderer: Renderer) {
 
-        windowPallet.makeContextCurrent()
+        windowPalette.makeContextCurrent()
 
         GL11.glMatrixMode(GL11.GL_MODELVIEW)
         GL11.glLoadIdentity()
@@ -319,48 +459,45 @@ object SceneMapBuilder : IScene {
 
         renderer.matrix {
 
-            val windowSize = windowPallet.getWindowSize()
+            val windowSize = windowPalette.getWindowSize()
 
             val aspectRatio = windowSize.x.toDouble() / windowSize.y
             GL11.glScaled(1.0, aspectRatio, 1.0)
 
-            for(i in 0 .. tileSet.length) {
+            when(targetMode) {
 
-                val x = i % 10
-                val y = i / 10
+                // except index 0 because it means void and the corresponding tileID would be -1.
+                TargetMode.TILE -> for(i in 1 .. tileTextureIDs.size) {
 
-                if(i == 0)
-                    continue
+                    val x = i % 10
+                    val y = i / 10 - scrollPalette
 
-                val tex = tileSet[i-1]
-                renderer.renderTexture(tex, vec(-1.0, 1.0/aspectRatio) + tileSize * vec(x, -y-1), tileSize)
+                    val tex = Texture(tileTextureIDs[i-1])
+                    renderer.renderTexture(tex, vec(-1.0, 1.0/aspectRatio) + tileSize * vec(x, -y-1), tileSize)
 
+                }
+                TargetMode.ENTITY -> {
+
+                    validEntityIDs.forEachIndexed { index, it ->
+
+                        val x = index % 10
+                        val y = index / 10 - scrollPalette
+
+                        val icon = entityIcons[it] ?: return@forEachIndexed
+
+                        renderer.renderTexture(icon, vec(-1.0, 1.0/aspectRatio) + tileSize * vec(x, -y-1), tileSize)
+
+                    }
+
+                }
             }
 
         }
 
-        windowPallet.swapBuffers()
+        windowPalette.swapBuffers()
 
         RpgUtt.window.makeContextCurrent()
 
-    }
-
-    private fun palletOnClicked(button: MouseButton, action: MouseAction): Boolean {
-
-        if(button == MouseButton.LEFT) {
-            val windowSize = windowPallet.getWindowSize()
-
-            val aspectRatio = windowSize.x.toDouble()/windowSize.y
-
-            val cpos = richWindowPallet.cursorPos
-
-            val x = (10 * (1+cpos.x)/2).toInt()
-            val y = (10/aspectRatio * (1-cpos.y)/2).toInt()
-
-            tileIDToPlace = (y*10 + x).coerceIn(0 .. tileSet.length).toUShort()
-        }
-
-        return true
     }
 
     fun Renderer.renderTextLines(height: Double, vararg lines: String) {
@@ -372,7 +509,28 @@ object SceneMapBuilder : IScene {
     }
 
     override fun reset() {
-        richWindowPallet.resetInput()
+        richWindowPalette.resetInput()
+    }
+
+    private fun paletteOnClicked(button: MouseButton, action: MouseAction): Boolean {
+
+        if(button == MouseButton.LEFT && action == MouseAction.PRESS) {
+            val windowSize = windowPalette.getWindowSize()
+
+            val aspectRatio = windowSize.x.toDouble()/windowSize.y
+
+            val cpos = richWindowPalette.cursorPos
+
+            val x = (10 * (1+cpos.x)/2).toInt()
+            val y = (10/aspectRatio * (1-cpos.y)/2).toInt() + scrollPalette
+
+            when(targetMode) {
+                TargetMode.TILE -> tileIDToPlace = (y*10 + x).coerceIn(0 .. tileTextureIDs.size).toUShort()
+                TargetMode.ENTITY -> entityIDToPlace = validEntityIDs.getOrNull(y*10 + x) ?: 0u
+            }
+        }
+
+        return true
     }
 
     override fun onClicked(window: RichWindow, button: MouseButton, action: MouseAction): Boolean {
@@ -385,22 +543,63 @@ object SceneMapBuilder : IScene {
 
         val clickedPos = GamePos.fromVec2d(cp * t) + scroll
 
-        if(button == MouseButton.LEFT && action == MouseAction.RELEASE) {
+        when(targetMode) {
+            TargetMode.TILE -> {
+                if(button == MouseButton.LEFT && action == MouseAction.RELEASE) {
 
-            if(clickedPos.x >= 0 && clickedPos.y >= 0 && targetLayer.toInt() in 0 until map.layerCount) {
-                map[targetLayer.toInt(), clickedPos.posInTiles.x, clickedPos.posInTiles.y] = tileIDToPlace
+                    if(clickedPos.x >= 0 && clickedPos.y >= 0 && targetLayer.toInt() in 0 until map.layerCount) {
+                        map[targetLayer.toInt(), clickedPos.posInTiles.x, clickedPos.posInTiles.y] = tileIDToPlace
+                    }
+                    return true
+                }
+
+                if(button == MouseButton.MIDDLE && action == MouseAction.RELEASE) {
+
+                    if(clickedPos.x >= 0 && clickedPos.y >= 0 && targetLayer.toInt() in 0 until map.layerCount) {
+
+                        tileIDToPlace = map[targetLayer.toInt(), clickedPos.posInTiles.x, clickedPos.posInTiles.y]
+
+                    }
+
+                }
             }
-            return true
-        }
+            TargetMode.ENTITY -> if(button == MouseButton.LEFT && action == MouseAction.RELEASE) {
 
-        if(button == MouseButton.MIDDLE && action == MouseAction.RELEASE) {
+                if(entityIDToPlace !in validEntityIDs)
+                    return true
 
-            if(clickedPos.x >= 0 && clickedPos.y >= 0 && targetLayer.toInt() in 0 until map.layerCount) {
+                print("PRE: y, POST: n: ")
+                val isPre = readln() == "y"
 
-                tileIDToPlace = map[targetLayer.toInt(), clickedPos.posInTiles.x, clickedPos.posInTiles.y]
+                val src = buildString {
+
+                    val className = EntityManager.entities[entityIDToPlace]?.simpleName
+
+                    append(className ?: return@buildString)
+                    append('(')
+
+                    print("$className ( ")
+
+                    do {
+                        val line = readln()
+                        append(line.removeSuffix("\\"))
+                    } while (line.endsWith('\\'))
+
+                    append(')')
+
+                }
+
+                val compiled = ScriptEvaluator.compileBuilders(StringScriptSource(src))
+                val entity = ScriptEvaluator.evalBuilderEntity<IEntity>(compiled, clickedPos) ?: run {
+                    println("Failed to evaluate!!!")
+                    return true
+                }
+
+                println("Loaded successfully!!!")
+
+                (if(isPre) entitiesPre else entities)._entities.add(entity)
 
             }
-
         }
 
         return false
@@ -409,7 +608,7 @@ object SceneMapBuilder : IScene {
     /**
      * **attention** It doesn't take Scroll Value in consideration. Scroll Value would be set by [GL11.glTranslated]
      */
-    fun getActualPos(pos: GamePos): Vec2d {
+    override fun getActualPos(pos: GamePos): Vec2d {
 
         return pos.toVec2d()* scale - Vec2d.ONE
 
@@ -420,7 +619,7 @@ object SceneMapBuilder : IScene {
      *
      * this function is for using signed values.
      */
-    fun getActualPos(pos: Vec2i): Vec2d {
+    override fun getActualPos(pos: Vec2i): Vec2d {
 
         return Vec2d(
             pos.x.toDouble(),
@@ -429,9 +628,52 @@ object SceneMapBuilder : IScene {
 
     }
 
-    fun getActualSize(size: Vec2f): Vec2d {
+    override fun getActualSize(size: Vec2f): Vec2d {
 
         return size.toVec2d()* scale
+
+    }
+
+    override fun canEntityGoto(entity: EntityObject, direction: Direction) = false
+
+    override val isTalking = false
+
+    private fun save() {
+
+        print("map name: ")
+        var name = readlnOrNull() ?: ""
+        if(name.isEmpty())
+            name = map.name
+
+        val generated = TileMap(name, map.size, map.tileSets, map.tiles, listOf(entitiesPre.createFactory(), entities.createFactory()))
+
+        val data = TileMapEncoder.encode(generated)
+
+        var i = 0
+
+        while(true) {
+
+            val path = Paths.get("./saved_$i.level")
+            if(Files.exists(path))
+                ++i
+            else
+                break
+
+        }
+        val path = Paths.get("./saved_$i.level")
+
+        Files.createFile(path)
+
+        val os = Files.newOutputStream(path)
+
+        val zos = ZipOutputStream(os)
+
+        zos.putNextEntry(ZipEntry("main.bin"))
+        zos.write(data)
+
+        zos.close()
+
+        println("Saved successfully!")
 
     }
 

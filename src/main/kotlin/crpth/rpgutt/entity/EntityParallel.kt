@@ -1,7 +1,7 @@
 package crpth.rpgutt.entity
 
 import crpth.rpgutt.map.EntityFactory
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.render.Renderer
 import crpth.util.type.BoundingBox
 import crpth.util.vec.resizeToInt
@@ -10,7 +10,7 @@ import java.io.DataOutputStream
 
 class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : EntityWithRendering() {
 
-    private val _entities: MutableList<IEntity> = entityList.toMutableList()
+    internal val _entities: MutableList<IEntity> = entityList.toMutableList()
 
     val childs: List<IEntity> get() = _entities
 
@@ -44,7 +44,7 @@ class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : Enti
 
     }
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         if(_entities.isEmpty())
             return IEntity.Feedback.FINISH
@@ -57,7 +57,7 @@ class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : Enti
                 minusEntry += entity
                 return@forEachIndexed
             }
-            status[index] = entity.update(sceneMain)
+            status[index] = entity.update(sceneStage)
 
         }
 
@@ -73,7 +73,7 @@ class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : Enti
 
     }
 
-    override fun render(sceneMain: SceneMain, renderer: Renderer) {
+    override fun render(sceneMain: ISceneStage, renderer: Renderer) {
 
         _entities.filterIsInstance<EntityWithRendering>().sortedBy { it.posZ }.forEachIndexed { index, entity ->
 
@@ -83,7 +83,7 @@ class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : Enti
 
     }
 
-    override fun isRenderingTarget(sceneMain: SceneMain, renderer: Renderer, bound: BoundingBox) = _entities.isNotEmpty()
+    override fun isRenderingTarget(sceneMain: ISceneStage, renderer: Renderer, bound: BoundingBox) = _entities.isNotEmpty()
 
     override fun encode(stream: DataOutputStream) {
 
@@ -99,7 +99,5 @@ class EntityParallel(entityList: List<IEntity>, override val posZ: Int=0) : Enti
         }
 
     }
-
-    override fun computeEncodedBinarySize() = _entities.sumOf { it.computeEncodedBinarySize() + 4 } + 2
 
 }

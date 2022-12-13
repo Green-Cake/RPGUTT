@@ -52,6 +52,8 @@ value class GamePos(val value: Vec2i) : IVec2n<Int> by value {
 
     override fun toVec2d() = Vec2d(x.toDouble() / PIXEL_AREA, y.toDouble() / PIXEL_AREA)
 
+    fun dropSub() = tile(x / PIXEL_AREA, y / PIXEL_AREA)
+
     fun encode(stream: DataOutputStream) {
         stream.writeLong(value.data.toLong())
     }

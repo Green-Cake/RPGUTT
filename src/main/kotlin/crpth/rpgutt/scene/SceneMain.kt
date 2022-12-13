@@ -5,38 +5,41 @@ import crpth.rpgutt.RpgUtt
 import crpth.rpgutt.entity.*
 import crpth.rpgutt.map.TileMap
 import crpth.rpgutt.map.TileMapLoader
+import crpth.rpgutt.obj.TileSetWithMeta
 import crpth.rpgutt.scene.MapParameter.*
 import crpth.rpgutt.script.lib.Serif
 import crpth.util.RichWindow
 import crpth.util.mouse.MouseAction
 import crpth.util.mouse.MouseButton
 import crpth.util.render.Renderer
+import crpth.util.render.Texture
 import crpth.util.render.TileSet
 import crpth.util.type.BoundingBox
+import crpth.util.type.Direction
 import crpth.util.vec.vec
 import crpth.util.vec.*
 import org.lwjgl.glfw.GLFW
 import org.lwjgl.opengl.GL11
+import java.io.DataInputStream
+import java.io.EOFException
 import java.util.*
 import kotlin.concurrent.thread
 import kotlin.math.abs
 import kotlin.math.ceil
 
-object SceneMain : IScene {
+object SceneMain : ISceneStage {
 
     private var rotation = Vec3f(0.0f, 0.0f, 0.0f)
 
-    private val tileSet by TileSet.createLazyInit("assets/rpgutt/textures/tile/BrightForest-A2.png", Vec2i(32, 32))
+    private var tileTextureIDs: IntArray = intArrayOf()
 
-    private val barrierTiles = setOf<UShort>(
-//        0u, 1u, 2u
-    )
+    private var barrierTiles: Set<UShort> = emptySet()
 
     private lateinit var map: TileMap
 
-    private lateinit var entitiesPre: EntityParallel
+    override lateinit var entitiesPre: EntityParallel
 
-    internal lateinit var entities: EntityParallel
+    override lateinit var entities: EntityParallel
 
     private val zoomValues = listOf(0.05, 0.08, 0.1, 0.12)
 
@@ -63,17 +66,68 @@ object SceneMain : IScene {
 
     private var statusPre = IEntity.Feedback.CONTINUE
 
-    var isTalking = false
+    override var isTalking = false
 
     private var currentSerifEntity: EntitySerif? = null
 
     val player: EntityPlayer get() = entities.childs.filterIsInstance<EntityPlayer>().first()
 
-    val playerCanMove get() = !isTalking
+    override val canPlayerMove get() = !isTalking
 
     private var isZooming = false
     private var zoomTarget = 0.0
     private var zoomSpeed = 0.002
+
+    var isTileSetLoaded = false
+
+    fun loadTileSet(names: List<String>) {
+
+        val tileSets = names.map { name ->
+            val set = TileSet("assets/rpgutt/textures/tile/$name.png", Vec2i(32, 32))
+
+            val barriers = mutableSetOf<UShort>()
+
+            val input = DataInputStream(ClassLoader.getSystemResourceAsStream("assets/rpgutt/textures/tile/$name.meta") ?: return@map TileSetWithMeta(set, emptySet()))
+
+            try {
+                barriers += input.readUnsignedShort().toUShort()
+            } catch(e: EOFException) {
+                return@map TileSetWithMeta(set, barriers)
+            }
+
+            TileSetWithMeta(set, barriers)
+
+        }
+
+        val (textures, barriers) = integrate(tileSets)
+
+        tileTextureIDs = textures
+        barrierTiles = barriers
+
+
+    }
+
+    fun integrate(tileSets: List<TileSetWithMeta>): Pair<IntArray, Set<UShort>> {
+
+        val tileTextureIDs = tileSets.flatMap { it.tileSet.ids.toList() }.toIntArray()
+
+        val barriers = mutableSetOf<UShort>()
+
+        var offset = 0
+
+        tileSets.forEach { swm ->
+
+            try {
+                barriers.addAll(swm.tileSet.ids.map { (it + offset).toUShort() })
+            } finally {
+                offset += swm.tileSet.length
+            }
+
+        }
+
+        return tileTextureIDs to barriers
+
+    }
 
     fun setParam(p: MapParameter, value: UInt) {
         parameters[p] = value
@@ -89,6 +143,8 @@ object SceneMain : IScene {
         entitiesPre = EntityManager.createEntity(map.entityFactories[0]) as EntityParallel
         entities = EntityManager.createEntity(map.entityFactories[1]) as EntityParallel
 
+        isTileSetLoaded = false
+
     }
 
     var isLoadingFinished = false
@@ -99,7 +155,7 @@ object SceneMain : IScene {
 
         thread {
             RpgUtt.logger.info("Map loading start")
-            loadNewMap("test")
+            loadNewMap("saved_0")
             RpgUtt.logger.info("Map loading finished")
             isLoadingFinished = true
         }
@@ -189,6 +245,13 @@ object SceneMain : IScene {
 
         }
 
+        if(::map.isInitialized && !isTileSetLoaded) {
+
+            loadTileSet(map.tileSets)
+            isTileSetLoaded = true
+
+        }
+
         if(statusPre == IEntity.Feedback.CONTINUE) {
             entitiesPre.render(this, renderer)
             return
@@ -217,10 +280,10 @@ object SceneMain : IScene {
                         val tileIDVoid = parameters[TILE_ID_VOID]?.toInt() ?: 0
 
                         val pos = getActualPos(Vec2i(x, y))
-                        val tex = if(tileIDVoid == 0) null else tileSet[tileIDVoid-1]
+                        val tex = if(tileIDVoid == 0) null else tileTextureIDs[tileIDVoid-1]
                         GL11.glColor4f(1f, 1f, 1f, 1f)
                         if(tex != null)
-                            renderer.renderTexture(tex, pos, getActualSize(Vec2f.ONE))
+                            renderer.renderTexture(Texture(tex), pos, getActualSize(Vec2f.ONE))
 
                         continue
                     }
@@ -234,7 +297,7 @@ object SceneMain : IScene {
                         if(tileID == 0)
                             continue
 
-                        val tex = tileSet[tileID-1]
+                        val tex = Texture(tileTextureIDs[tileID-1])
                         GL11.glColor4f(1f, 1f, 1f, 1f)
                         renderer.renderTexture(
                             tex,
@@ -261,7 +324,7 @@ object SceneMain : IScene {
             GL11.glColor3f(0f, 1f, 0.2f)
 
             renderer.renderTextLines(0.05,
-                "world: ${tileSet.width}x${tileSet.width}",
+                "world: ${map.size.x}x${map.size.y}",
                 "player: ${player.pos}",
                 String.format("scale: %.2f", 1.0 / scale),
                 "entity: ${entities.childs.size}"
@@ -290,7 +353,7 @@ object SceneMain : IScene {
     /**
      * **attention** It doesn't take Scroll Value in consideration. Scroll Value would be set by [GL11.glTranslated]
      */
-    fun getActualPos(pos: GamePos): Vec2d {
+    override fun getActualPos(pos: GamePos): Vec2d {
 
         return pos.toVec2d()*scale - Vec2d.ONE
 
@@ -301,7 +364,7 @@ object SceneMain : IScene {
      *
      * this function is for using signed values.
      */
-    fun getActualPos(pos: Vec2i): Vec2d {
+    override fun getActualPos(pos: Vec2i): Vec2d {
 
         return Vec2d(
             pos.x.toDouble(),
@@ -312,19 +375,19 @@ object SceneMain : IScene {
 
     fun getScroll(): Vec2d {
 
-        val player = entities.childs.filterIsInstance<EntityPlayer>().first()
+        val player = entities.childs.filterIsInstance<EntityPlayer>().firstOrNull() ?: return Vec2d.ZERO
 
         return -getActualPos(player.pos)
 
     }
 
-    fun getActualSize(size: Vec2f): Vec2d {
+    override fun getActualSize(size: Vec2f): Vec2d {
 
         return size.toVec2d()*scale
 
     }
 
-    fun canEntityGoto(entity: EntityObject, d: Direction): Boolean {
+    override fun canEntityGoto(entity: EntityObject, d: Direction): Boolean {
 
         val position = entity.pos
 

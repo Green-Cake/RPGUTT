@@ -1,6 +1,6 @@
 package crpth.rpgutt.entity
 
-import crpth.rpgutt.scene.SceneMain
+import crpth.rpgutt.scene.ISceneStage
 import crpth.util.vec.Vec4b
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -17,7 +17,7 @@ class EntityWait(val duration: Float) : EntityScript() {
 
     var d = 0.0f
 
-    override fun update(sceneMain: SceneMain): IEntity.Feedback {
+    override fun update(sceneStage: ISceneStage): IEntity.Feedback {
 
         d += 1f / 60
         return if(d > duration) IEntity.Feedback.FINISH else IEntity.Feedback.CONTINUE
@@ -27,7 +27,5 @@ class EntityWait(val duration: Float) : EntityScript() {
     override fun encode(stream: DataOutputStream) {
         stream.writeFloat(duration)
     }
-
-    override fun computeEncodedBinarySize() = 4
 
 }
