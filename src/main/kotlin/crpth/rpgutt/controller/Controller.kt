@@ -1,7 +1,7 @@
 package crpth.rpgutt.controller
 
 import crpth.rpgutt.RpgUtt
-import crpth.rpgutt.entity.Direction4
+import crpth.util.type.Direction
 import org.lwjgl.glfw.GLFW
 
 class ControllerManager : Controller {
@@ -35,7 +35,7 @@ interface Controller {
 
     var isEnabled: Boolean
 
-    val directions: Set<Direction4>
+    val directions: Set<Direction>
 
     fun update()
 
@@ -51,7 +51,7 @@ interface Controller {
 
 class ControllerKeyboard : Controller {
 
-    override val directions = mutableSetOf<Direction4>()
+    override val directions = mutableSetOf<Direction>()
 
     override var isEnabled = false
 
@@ -62,17 +62,17 @@ class ControllerKeyboard : Controller {
         if(!isEnabled)
             return
 
-        if(RpgUtt.isKeyDown(GLFW.GLFW_KEY_UP) || RpgUtt.isKeyDown(GLFW.GLFW_KEY_W))
-            directions += Direction4.NORTH
+        if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_UP) || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_W))
+            directions += Direction.NORTH
 
-        if(RpgUtt.isKeyDown(GLFW.GLFW_KEY_RIGHT) || RpgUtt.isKeyDown(GLFW.GLFW_KEY_D))
-            directions += Direction4.EAST
+        if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_RIGHT) || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_D))
+            directions += Direction.EAST
 
-        if(RpgUtt.isKeyDown(GLFW.GLFW_KEY_DOWN) || RpgUtt.isKeyDown(GLFW.GLFW_KEY_S))
-            directions += Direction4.SOUTH
+        if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_DOWN) || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_S))
+            directions += Direction.SOUTH
 
-        if(RpgUtt.isKeyDown(GLFW.GLFW_KEY_LEFT) || RpgUtt.isKeyDown(GLFW.GLFW_KEY_A))
-            directions += Direction4.WEST
+        if(RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_LEFT) || RpgUtt.richWindow.isKeyDown(GLFW.GLFW_KEY_A))
+            directions += Direction.WEST
 
     }
 
@@ -80,7 +80,7 @@ class ControllerKeyboard : Controller {
 
 class ControllerHat(val joystickID: Int = GLFW.GLFW_JOYSTICK_1) : Controller {
 
-    override val directions = mutableSetOf<Direction4>()
+    override val directions = mutableSetOf<Direction>()
 
     override var isEnabled = false
 
@@ -103,16 +103,16 @@ class ControllerHat(val joystickID: Int = GLFW.GLFW_JOYSTICK_1) : Controller {
         val hat = hats?.get(hat_n)?.toInt() ?: return
 
         if(hat and GLFW.GLFW_HAT_UP != 0)
-            directions += Direction4.NORTH
+            directions += Direction.NORTH
 
         if(hat and GLFW.GLFW_HAT_RIGHT != 0)
-            directions += Direction4.EAST
+            directions += Direction.EAST
 
         if(hat and GLFW.GLFW_HAT_DOWN != 0)
-            directions += Direction4.SOUTH
+            directions += Direction.SOUTH
 
         if(hat and GLFW.GLFW_HAT_LEFT != 0)
-            directions += Direction4.WEST
+            directions += Direction.WEST
 
     }
 
@@ -120,7 +120,7 @@ class ControllerHat(val joystickID: Int = GLFW.GLFW_JOYSTICK_1) : Controller {
 
 class ControllerJoystick(val joystickID: Int = GLFW.GLFW_JOYSTICK_1) : Controller {
 
-    override val directions = mutableSetOf<Direction4>()
+    override val directions = mutableSetOf<Direction>()
 
     override var isEnabled = false
 
@@ -139,16 +139,16 @@ class ControllerJoystick(val joystickID: Int = GLFW.GLFW_JOYSTICK_1) : Controlle
         val axes = GLFW.glfwGetJoystickAxes(joystickID) ?: return
 
         if(axes[1] < -0.5f)
-            directions += Direction4.NORTH
+            directions += Direction.NORTH
 
         if(axes[0] > 0.5f)
-            directions += Direction4.EAST
+            directions += Direction.EAST
 
         if(axes[1] > 0.5f)
-            directions += Direction4.SOUTH
+            directions += Direction.SOUTH
 
         if(axes[0] < -0.5f)
-            directions += Direction4.WEST
+            directions += Direction.WEST
 
     }
 
