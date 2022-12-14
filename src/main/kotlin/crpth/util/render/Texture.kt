@@ -15,7 +15,11 @@ value class Texture(override val id: Int) : ITexture {
 
         fun load(path: String): Texture {
 
-            val (pixels, size) = ResourceManager.loadTextureImageBufAndSize(ClassLoader.getSystemResourceAsStream("assets/rpgutt/textures/"+path) ?: throw NoSuchFileException(File("assets/rpgutt/textures/"+path)))
+            val (pixels, size) = ResourceManager.loadTextureImageBufAndSize(
+                ClassLoader.getSystemResourceAsStream(
+                    "assets/rpgutt/textures/$path") ?: throw NoSuchFileException(File("assets/rpgutt/textures/$path")
+                    )
+            )
             return load(pixels, size)
 
         }

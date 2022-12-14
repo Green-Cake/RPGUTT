@@ -107,22 +107,6 @@ fun compile() {
 
     val pre = parallel(
         EntityMapConfig(MapParameter.TILE_ID_VOID, 2u)
-//        order(
-//            EntityTextLine("統一歴3年", Vec2f(0f, 0f), 0.10f, Vec4b.WHITE, 4.0f, 2.0f, 2.0f),
-//            parallel(
-//                order(
-//                    EntityTextLine("大陸を統一した", Vec2f(0f, 0.15f), 0.1f, Vec4b.WHITE, 2.0f, 1f, 1f)
-//                ),
-//                order(
-//                    waits(4.0f),
-//                    EntityTextLine("「アトラントの帝国」は", Vec2f(0f, -0.15f), 0.1f, Vec4b.WHITE, 2.0f, 0.5f, 0.5f)
-//                )
-//            ),
-//            waits(0.5f),
-//            EntityTextLine("長きに渡った戦争も終わり", Vec2f(0f, 0f), 0.1f, Vec4b.WHITE, 2.0f, 0.5f, 0.5f),
-//            waits(0.5f),
-//            EntityTextLine("繁栄の絶頂にあった...", Vec2f(0f, 0f), 0.1f, Vec4b.WHITE, 2.0f, 0.5f, 0.5f)
-//        )
     )
 
     val post = parallel(

@@ -7,8 +7,8 @@ import org.lwjgl.glfw.GLFW
 
 class RichWindow(val window: Window, var fOnClicked: (button: MouseButton, action: MouseAction)->Boolean) {
 
-    val keyMapPrev = mutableSetOf<Int>()
-    val keyMap = mutableSetOf<Int>()
+    private val keyMapPrev = mutableSetOf<Int>()
+    private val keyMap = mutableSetOf<Int>()
 
     var cursorPos = Vec2f.ZERO
         private set
